@@ -1,2 +1,2 @@
-# encryption-app
-For the [name-to-be-determined] encryption app. 
+# LegalCrypt
+Encryption solution for small to medium sized law firms. 
