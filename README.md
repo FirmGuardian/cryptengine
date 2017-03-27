@@ -2,7 +2,9 @@
 Encryption solution for small to medium sized law firms. 
 
 ## Project Layout
-The app is located in `/legalcrypt/python3/app/ui.py` and `/legalcrypt/python3/app/crypt.py`. The `/legalcrypt/python3/networking/` folder contains a PoC for a multithreaded HTTPS server which can accept up to 5 concurrent connections. `/legalcrypt/python3/networking/client.py` is the means through which `/legalcrypt/python3/app/ui.py` will connect to our server to do authentication and validation.  
+The app is located in `/legalcrypt/python3/app/ui.py` and `/legalcrypt/python3/app/crypt.py`. 
+
+The `/legalcrypt/python3/networking/` folder contains a PoC for a multithreaded HTTPS server which can accept up to 5 concurrent connections. `/legalcrypt/python3/networking/client.py` is the means through which `/legalcrypt/python3/app/ui.py` will connect to our server to do authentication and validation.  
 
 ### To run the app:
 `python3 ui.py`
