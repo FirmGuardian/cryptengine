@@ -23,23 +23,24 @@ import (
 
 func check(e error) {
   if e != nil {
+    fmt.Println("ERR::PANIC")
     panic(e)
   }
 }
 
 func main() {
-  passphrase := "tinabelcherlovesbutts"
+  passphrase := "tina_belcher_loves_butts"
 
   // priv *rsa.PrivateKey;
   // err error;
   priv, err := rsa.GenerateKey(rand.Reader, 4096)
   if err != nil {
-    fmt.Println(err)
+    fmt.Println("ERR::Failed to generate private key.", err)
     return
   }
   err = priv.Validate()
   if err != nil {
-    fmt.Println("Validation failed.", err)
+    fmt.Println("ERR::Validation failed.", err)
   }
 
   // Get der format. priv_der []byte
@@ -56,7 +57,7 @@ func main() {
   // Encrypt the pem
   crypted_blk, err := x509.EncryptPEMBlock(rand.Reader, priv_blk.Type, priv_blk.Bytes, []byte(passphrase), x509.PEMCipherAES256)
   if err != nil {
-    fmt.Println(err)
+    fmt.Println("ERR::Failed to encrupt PEM private block", err)
     return
   }
 
@@ -77,7 +78,7 @@ func main() {
 
   pub_der, err := x509.MarshalPKIXPublicKey(&pub)
   if err != nil {
-    fmt.Println("Failed to get der format for PublicKey.", err)
+    fmt.Println("ERR::Failed to get der format for PublicKey.", err)
     return
   }
 
