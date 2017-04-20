@@ -6,6 +6,9 @@
  *
  * The generated public key can be parsed as follows:
  * > openssl rsa -pubin -in pub.pem -text
+ *
+ * TODO: Clean this up, it's gross.
+ * TODO: Add support for additional encryption methods
  */
 package main
 
