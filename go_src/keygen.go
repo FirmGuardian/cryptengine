@@ -7,8 +7,7 @@
  * The generated public key can be parsed as follows:
  * > openssl rsa -pubin -in pub.pem -text
  *
- * TODO: Clean this up, it's gross.
- * TODO: Add support for additional encryption methods
+ * TODO: Add support for additional encryption methods -Liam
  */
 package main
 
@@ -19,6 +18,7 @@ import (
   "encoding/pem"
   "fmt"
   "os"
+  "strings"
 )
 
 func check(e error) {
@@ -28,74 +28,103 @@ func check(e error) {
   }
 }
 
-func main() {
-  passphrase := "tina_belcher_loves_butts"
-
-  // priv *rsa.PrivateKey;
+func generateRSA4096(secret string) (privateKey string, publicKey string, err error) {
+  // private_1 *rsa.PrivateKey;
   // err error;
-  priv, err := rsa.GenerateKey(rand.Reader, 4096)
+  private_1, err := rsa.GenerateKey(rand.Reader, 4096)
+
   if err != nil {
-    fmt.Println("ERR::Failed to generate private key.", err)
-    return
+    fmt.Println("ERR::Failed to generate private key.")
+    return "", "", err
   }
-  err = priv.Validate()
+
+  err = private_1.Validate()
   if err != nil {
-    fmt.Println("ERR::Validation failed.", err)
+    fmt.Println("ERR::Validation failed.")
+    return "", "", err
   }
 
   // Get der format. priv_der []byte
-  priv_der := x509.MarshalPKCS1PrivateKey(priv)
+  private_der := x509.MarshalPKCS1PrivateKey(private_1)
 
   // pem.Block
   // blk pem.Block
-  priv_blk := pem.Block {
+  private_2 := pem.Block {
     Type: "RSA PRIVATE KEY",
     Headers: nil,
-    Bytes: priv_der,
+    Bytes: private_der,
   }
 
   // Encrypt the pem
-  crypted_blk, err := x509.EncryptPEMBlock(rand.Reader, priv_blk.Type, priv_blk.Bytes, []byte(passphrase), x509.PEMCipherAES256)
+  private_3, err := x509.EncryptPEMBlock(rand.Reader, private_2.Type, private_2.Bytes, []byte(secret), x509.PEMCipherAES256)
   if err != nil {
-    fmt.Println("ERR::Failed to encrupt PEM private block", err)
-    return
+    fmt.Println("ERR::Failed to encrupt PEM private block")
+    return "", "", err
   }
 
   // Resultant private key in PEM format.
   // priv_pem string
-  priv_pem := string(pem.EncodeToMemory(crypted_blk))
-
-  f_priv, err := os.Create("./id_rsa.private.pem")
-  check(err)
-  defer f_priv.Close()
-
-  n_priv, err := f_priv.WriteString(priv_pem)
-
-  f_priv.Sync()
+  private_pem := string(pem.EncodeToMemory(private_3))
 
   // Public Key generation
-  pub := priv.PublicKey
+  public_1 := private_1.PublicKey
 
-  pub_der, err := x509.MarshalPKIXPublicKey(&pub)
+  public_der, err := x509.MarshalPKIXPublicKey(&public_1)
   if err != nil {
-    fmt.Println("ERR::Failed to get der format for PublicKey.", err)
+    fmt.Println("ERR::Failed to get der format for PublicKey.")
+    return "", "", err
+  }
+
+  public_2 := pem.Block {
+    Type: "PUBLIC KEY",
+    Headers: nil,
+    Bytes: public_der,
+  }
+  public_pem := string(pem.EncodeToMemory(&public_2))
+
+  return private_pem, public_pem, nil
+}
+
+func writeKeyPair(privatePem string, publicPem string, encType string) (n_private int, n_public int) {
+  privateFilename := "./id_" + strings.ToLower(encType) + ".private.pem"
+  publicFilename  := "./id_" + strings.ToLower(encType) + ".public.pem"
+
+  f_private, err := os.Create(privateFilename)
+  check(err)
+  defer f_private.Close()
+
+  f_public, err := os.Create(publicFilename)
+  check(err)
+  defer f_public.Close()
+
+  n_private, err = f_private.WriteString(privatePem)
+  if err != nil {
+    fmt.Println("ERR::Failed to write private key file")
+    return 0, 0
+  }
+  n_public, err  = f_public.WriteString(publicPem)
+  if err != nil {
+    fmt.Println("ERR::Failed to write public key file")
+    return n_private, 0
+  }
+
+  f_private.Sync()
+  f_public.Sync()
+
+  return n_private, n_public
+}
+
+func main() {
+  passphrase := "tina_belcher_loves_butts"
+
+  privatePem, publicPem, err := generateRSA4096(passphrase)
+  if err != nil {
+    fmt.Println("ERR::Something has gone awry.", err)
     return
   }
 
-  pub_blk := pem.Block {
-    Type: "PUBLIC KEY",
-    Headers: nil,
-    Bytes: pub_der,
-  }
-  pub_pem := string(pem.EncodeToMemory(&pub_blk))
 
-  f_pub, err := os.Create("./id_rsa.public.pem")
-  check(err)
-  defer f_pub.Close()
-
-  n_pub, err := f_pub.WriteString(pub_pem)
-
-  f_pub.Sync()
+  n_priv, n_pub := writeKeyPair(privatePem, publicPem, "rsa")
 
   // Parsable output <STATUS>::<SZ_PRIV_KEY>::<SZ_PUB_KEY>
   fmt.Printf("OK::%d::%d\n", n_priv, n_pub)
