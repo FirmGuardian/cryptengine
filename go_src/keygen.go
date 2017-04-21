@@ -17,8 +17,10 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"os"
+  "io/ioutil"
 	"strings"
+  //"golang.org/x/crypto/ed25519"
+  //"github.com/mikesmitty/edkey"
 )
 
 func check(e error) {
@@ -28,20 +30,20 @@ func check(e error) {
 	}
 }
 
-func generateRSA4096(secret string) (privateKey string, publicKey string, err error) {
+func generateRSA4096(secret string) (privateKey []byte, publicKey []byte, err error) {
 	// private1 *rsa.PrivateKey;
 	// err error;
 	private1, err := rsa.GenerateKey(rand.Reader, 4096)
 
 	if err != nil {
 		fmt.Println("ERR::Failed to generate private key.")
-		return "", "", err
+		return nil, nil, err
 	}
 
 	err = private1.Validate()
 	if err != nil {
 		fmt.Println("ERR::Validation failed.")
-		return "", "", err
+		return nil, nil, err
 	}
 
 	// Get der format. priv_der []byte
@@ -59,12 +61,12 @@ func generateRSA4096(secret string) (privateKey string, publicKey string, err er
 	private3, err := x509.EncryptPEMBlock(rand.Reader, private2.Type, private2.Bytes, []byte(secret), x509.PEMCipherAES256)
 	if err != nil {
 		fmt.Println("ERR::Failed to encrupt PEM private block")
-		return "", "", err
+		return nil, nil, err
 	}
 
 	// Resultant private key in PEM format.
 	// priv_pem string
-	privatePem := string(pem.EncodeToMemory(private3))
+	privatePem := pem.EncodeToMemory(private3)
 
 	// Public Key generation
 	public1 := private1.PublicKey
@@ -72,7 +74,7 @@ func generateRSA4096(secret string) (privateKey string, publicKey string, err er
 	publicDer, err := x509.MarshalPKIXPublicKey(&public1)
 	if err != nil {
 		fmt.Println("ERR::Failed to get der format for PublicKey.")
-		return "", "", err
+		return nil, nil, err
 	}
 
 	public2 := pem.Block{
@@ -80,38 +82,17 @@ func generateRSA4096(secret string) (privateKey string, publicKey string, err er
 		Headers: nil,
 		Bytes:   publicDer,
 	}
-	publicPem := string(pem.EncodeToMemory(&public2))
+	publicPem := pem.EncodeToMemory(&public2)
 
 	return privatePem, publicPem, nil
 }
 
-func writeKeyPair(privatePem string, publicPem string, encType string) (nPrivate int, nPublic int) {
+func writeKeyPair(privatePem []byte, publicPem []byte, encType string) {
 	privateFilename := "./id_" + strings.ToLower(encType) + ".private.pem"
 	publicFilename := "./id_" + strings.ToLower(encType) + ".public.pem"
 
-	fPrivate, err := os.Create(privateFilename)
-	check(err)
-	defer fPrivate.Close()
-
-	fPublic, err := os.Create(publicFilename)
-	check(err)
-	defer fPublic.Close()
-
-	nPrivate, err = fPrivate.WriteString(privatePem)
-	if err != nil {
-		fmt.Println("ERR::Failed to write private key file")
-		return 0, 0
-	}
-	nPublic, err = fPublic.WriteString(publicPem)
-	if err != nil {
-		fmt.Println("ERR::Failed to write public key file")
-		return nPrivate, 0
-	}
-
-	fPrivate.Sync()
-	fPublic.Sync()
-
-	return nPrivate, nPublic
+	_ = ioutil.WriteFile(privateFilename, privatePem, 0600)
+  _ = ioutil.WriteFile(publicFilename,  publicPem, 0644)
 }
 
 func main() {
@@ -123,8 +104,8 @@ func main() {
 		return
 	}
 
-	szPriv, szPub := writeKeyPair(privatePem, publicPem, "rsa")
+	writeKeyPair(privatePem, publicPem, "rsa")
 
 	// Parsable output <STATUS>::<SZ_PRIV_KEY>::<SZ_PUB_KEY>
-	fmt.Printf("OK::%d::%d\n", szPriv, szPub)
+	fmt.Println("OK")
 }
