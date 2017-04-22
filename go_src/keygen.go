@@ -96,7 +96,7 @@ func writeKeyPair(privatePem []byte, publicPem []byte, encType string) {
 }
 
 func main() {
-	passphrase := "tina_belcher_loves_butts"
+	passphrase := "t1n@ b3LcHeR_lov3s!bUtts+"
 
 	privatePem, publicPem, err := generateRSA4096(passphrase)
 	if err != nil {
