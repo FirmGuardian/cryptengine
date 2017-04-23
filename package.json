@@ -6,7 +6,8 @@
   "author": "Liam Conrad, liam@firmguardian.com",
   "copyright": "© 2017, FirmGuardian",
   "homepage": "https://firmguardian.com",
-  "license": "NONE",
+  "license": "UNLICENSED",
+  "private": true,
   "main": "app/background.js",
   "build": {
     "appId": "com.firmguardian.legal-crypt",
