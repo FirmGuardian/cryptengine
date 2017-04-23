@@ -88,10 +88,10 @@ func generateRSA4096(secret string) (privateKey []byte, publicKey []byte, err er
 }
 
 func writeKeyPair(privatePem []byte, publicPem []byte, encType string) {
-	privateFilename := "./id_" + strings.ToLower(encType) + ".private.pem"
-	publicFilename := "./id_" + strings.ToLower(encType) + ".public.pem"
+	privateFilename := "./id_" + strings.ToLower(encType)
+	publicFilename := "./id_" + strings.ToLower(encType) + ".pub"
 
-	_ = ioutil.WriteFile(privateFilename, privatePem, 0600)
+	_ = ioutil.WriteFile(privateFilename, privatePem, 0400)
   _ = ioutil.WriteFile(publicFilename,  publicPem, 0644)
 }
 
