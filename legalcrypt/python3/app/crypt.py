@@ -1,26 +1,27 @@
 import os
-from Cryptodome.PublicKey import RSA
-from Cryptodome.Random import get_random_bytes
-from Cryptodome.Cipher import AES, PKCS1_OAEP
+from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
+from Crypto.Cipher import AES, PKCS1_OAEP
 
 # GLOBAL VARIABLES
 CUSTOMER_NAME = 'CUSTOMER_X'
 KEYS_EXIST = False
+USER = 'Ciznit'
 
 
 def generate_key_pair():
     code = 'itsasecret'
     key = RSA.generate(2048)
     encrypted_key = key.exportKey(passphrase=code, pkcs=8, protection="scryptAndAES128-CBC")
-    with open('/Users/alexbujduveanu/.ssh/' + CUSTOMER_NAME + '.bin', 'wb') as f:
+    with open('/Users/' + USER + '/.ssh/' + CUSTOMER_NAME + '.bin', 'wb') as f:
         f.write(encrypted_key)
-    with open('/Users/alexbujduveanu/.ssh/' + CUSTOMER_NAME + '_PUBKEY.bin', 'wb') as f:
+    with open('/Users/' + USER + '/.ssh/' + CUSTOMER_NAME + '_PUBKEY.bin', 'wb') as f:
         f.write(key.publickey().exportKey())
     KEYS_EXIST = True
 
 def encrypt(in_file_name):
     with open(in_file_name + '_ENCRYPTED', 'wb') as out_file:
-        recipient_key = RSA.import_key(open('/Users/alexbujduveanu/.ssh/' + CUSTOMER_NAME + '_PUBKEY.bin').read())
+        recipient_key = RSA.import_key(open('/Users/' + USER + '/.ssh/' + CUSTOMER_NAME + '_PUBKEY.bin').read())
         session_key = get_random_bytes(16)
 
         cipher_rsa = PKCS1_OAEP.new(recipient_key)
@@ -44,7 +45,7 @@ def encrypt(in_file_name):
 def decrypt(in_file_name):
     code = 'itsasecret'
     with open(in_file_name, 'rb') as fobj:
-        private_key = RSA.import_key(open('/Users/alexbujduveanu/.ssh/' + CUSTOMER_NAME + '.bin').read(), passphrase=code)
+        private_key = RSA.import_key(open('/Users/' + USER + '/.ssh/' + CUSTOMER_NAME + '.bin').read(), passphrase=code)
         enc_session_key, nonce, tag, ciphertext = [fobj.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1)]
         cipher_rsa = PKCS1_OAEP.new(private_key)
         session_key = cipher_rsa.decrypt(enc_session_key)
@@ -59,12 +60,12 @@ def decrypt(in_file_name):
     os.remove(in_file_name)
 
 def check_keypair_existence_and_create():
-    if not os.path.isfile('/Users/alexbujduveanu/.ssh/' + CUSTOMER_NAME + '.bin'):
+    if not os.path.isfile('/Users/' + USER + '/.ssh/' + CUSTOMER_NAME + '.bin'):
         # create the keys
         generate_key_pair()
 
 def check_keypair_existence():
-    if os.path.isfile('/Users/alexbujduveanu/.ssh/' + CUSTOMER_NAME + '.bin'):
+    if os.path.isfile('/Users/' + USER + '/.ssh/' + CUSTOMER_NAME + '.bin'):
         return True
     else:
         return False
