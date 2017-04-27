@@ -34,9 +34,9 @@ app.on('ready', () => {
   setApplicationMenu();
 
   const mainWindow = createWindow('main', {
-    frame: false,
-    width: 1000,
-    height: 600,
+    // frame: true,
+    width: 400,
+    height: 300,
   });
 
   mainWindow.loadURL(url.format({
