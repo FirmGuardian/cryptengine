@@ -8,19 +8,29 @@ import (
   "crypto/rsa"
   "encoding/pem"
   "golang.org/x/crypto/sha3"
+  "bufio"
+  "os"
+  "crypto/aes"
+  "io"
+  "crypto/cipher"
 )
 
 //func decryptRSA(secret string) {
 //  hash := sha3.New512()
 //}
 
-func encryptRSA(filePath string) ([]byte) {
-  hash := sha3.New512()
-  rng := rand.Reader
+func encryptRSA(filePath string) (error) {
+  // Create output file, and Writer
+  of, err := os.Create(filePath + ".encrypted")
+  defer of.Close()
+  w := bufio.NewWriter(of)
 
-  //sessionKey, err := generateRandomBytes(32)
-  //check(err, "Unable to generate sessionKey")
+  // Generate AES Session Key; to be RSA encrypted, and used to
+  // encrypt input file
+  sessionKey, err := generateRandomBytes(32)
+  check(err, "Unable to generate sessionKey")
 
+  // Slurp and parse public key to encrypt AES Session Key
   keySlurp, err := ioutil.ReadFile("./id_rsa.pub")
   publicBlock, _ := pem.Decode(keySlurp)
   if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
@@ -30,17 +40,37 @@ func encryptRSA(filePath string) ([]byte) {
   publicKey, err := x509.ParsePKIXPublicKey(publicBlock.Bytes)
   check(err, "Unable to parse public key")
 
+  hash := sha3.New512()
+  rng := rand.Reader
+
+  encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
+
+  w.Write(encryptedSessionKey)
+
+  // Create new AES block
+  aesCipher, err := aes.NewCipher(sessionKey)
+  check(err, "Unable to create AES cipher")
+
+  // Generate nonce
+  nonce := make([]byte, 12)
+  if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+    panic(err.Error())
+  }
+
+  // Slurp file to be encrypted
   fSlurp, err := ioutil.ReadFile(filePath)
   check(err, "Unable to read file to be secured.")
 
-  encrypted, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), fSlurp, []byte(""))
-  check(err, "Failed to encrypt file.")
+  // Do the deed.
+  aesgcm, err := cipher.NewGCM(aesCipher)
+  check(err, "Unable to create new AES cipher")
 
-  return encrypted
-}
+  encrypted := aesgcm.Seal(fSlurp, nonce, fSlurp, nil)
 
-func writeEncryptedFile(filename string, data []byte) (error) {
-  return ioutil.WriteFile(filename, data, 0400)
+  w.Write(encrypted)
+  w.Flush()
+
+  return nil
 }
 
 func generateRSA4096(secret string) (privateKey []byte, publicKey []byte, err error) {
