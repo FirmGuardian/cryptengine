@@ -65,7 +65,7 @@ func encryptRSA(filePath string) (error) {
   aesgcm, err := cipher.NewGCM(aesCipher)
   check(err, "Unable to create new AES cipher")
 
-  encrypted := aesgcm.Seal(fSlurp, nonce, fSlurp, nil)
+  encrypted := aesgcm.Seal(nil, nonce, fSlurp, nil)
 
   w.Write(encrypted)
   w.Flush()
