@@ -20,8 +20,11 @@ import (
 //}
 
 func encryptRSA(filePath string) (error) {
+  outFilePath := filePath + ".encrypted"
+  nixIfExists(outFilePath)
+
   // Create output file, and Writer
-  of, err := os.Create(filePath + ".encrypted")
+  of, err := os.Create(outFilePath)
   defer of.Close()
   w := bufio.NewWriter(of)
 

@@ -5,6 +5,7 @@ import (
   "fmt"
   "strings"
   "io/ioutil"
+  "os"
 )
 
 func check(e error, msg string) {
@@ -22,6 +23,12 @@ func generateRandomBytes(s int) ([]byte, error) {
   }
 
   return b, nil
+}
+
+func nixIfExists(filePath string) {
+  if _, err := os.Stat(filePath); err == nil {
+    check(os.Remove(filePath), "Unable to remove existing file")
+  }
 }
 
 func writeKeyPair(privatePem []byte, publicPem []byte, encType string) {
