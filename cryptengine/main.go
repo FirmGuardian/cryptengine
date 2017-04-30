@@ -13,20 +13,33 @@ package main
 
 import (
 	"fmt"
+  "flag"
 )
 
 func main() {
-	passphrase := "t1n@ b3LcHeR_lov3s!bUtts+"
+  keygenPtr := flag.Bool("keygen", false, "Generates a new key pair")
 
-  fmt.Println(";;Generating keypair")
-	privatePem, publicPem, err := generateRSA4096(passphrase)
-	check(err, "Something has gone awry.")
+  methodPtr := flag.String("method", "rsa", "Declares method of encryption/keygen")
 
-  fmt.Println(";;Writing keypair")
-	writeKeyPair(privatePem, publicPem, "rsa")
+  flag.Parse()
+
+  //fmt.Println("keygen:", *keygenPtr)
+  //fmt.Println("method:", *methodPtr)
+
+  if *keygenPtr {
+    passphrase := "t1n@ b3LcHeR_lov3s!bUtts+"
+
+    fmt.Println(";;Generating keypair")
+    privatePem, publicPem, err := generateRSA4096(passphrase)
+    check(err, "Something has gone awry.")
+
+    fmt.Println(";;Writing keypair")
+    writeKeyPair(privatePem, publicPem, *methodPtr)
+  }
+
 
   fmt.Println(";;Encrypting file")
-  err = encryptRSA("./mysecretdata.txt")
+  err := encryptRSA("./mysecretdata.txt")
   check(err, "Could not encrypt data, or write encrypted file!")
 
 	// Parsable output <STATUS>::<SZ_PRIV_KEY>::<SZ_PUB_KEY>
