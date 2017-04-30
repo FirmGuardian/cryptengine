@@ -26,11 +26,8 @@ func main() {
 	writeKeyPair(privatePem, publicPem, "rsa")
 
   fmt.Println(";;Encrypting file")
-  encrypted := encryptRSA("./trump.gif")
-
-  fmt.Println(";;Writing encrypted file")
-  err = writeEncryptedFile("./trump.legalcrypt", encrypted)
-  check(err, "Could not write encrypted file!")
+  err = encryptRSA("./mysecretdata.txt")
+  check(err, "Could not encrypt data, or write encrypted file!")
 
 	// Parsable output <STATUS>::<SZ_PRIV_KEY>::<SZ_PUB_KEY>
 	fmt.Println("OK")
