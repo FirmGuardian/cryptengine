@@ -3,16 +3,22 @@ package main
 import (
   "crypto/rand"
   "fmt"
-  "strings"
-  "io/ioutil"
   "os"
 )
 
 func check(e error, msg string) {
   if e != nil {
-    fmt.Println("ERR::" + msg)
+    fmt.Fprintln(os.Stderr, "ERR::" + msg)
     panic(e)
   }
+}
+
+func fileExists(filePath string) (bool) {
+  if _, err := os.Stat(filePath); err == nil {
+    return true
+  }
+
+  return false
 }
 
 func generateRandomBytes(s int) ([]byte, error) {
@@ -30,12 +36,3 @@ func nixIfExists(filePath string) {
     check(os.Remove(filePath), "Unable to remove existing file")
   }
 }
-
-func writeKeyPair(privatePem []byte, publicPem []byte, encType string) {
-  privateFilename := "./id_" + strings.ToLower(encType)
-  publicFilename := "./id_" + strings.ToLower(encType) + ".pub"
-
-  _ = ioutil.WriteFile(privateFilename, privatePem, 0400)
-  _ = ioutil.WriteFile(publicFilename,  publicPem, 0644)
-}
-

@@ -13,6 +13,7 @@ import (
   "crypto/aes"
   "io"
   "crypto/cipher"
+  "fmt"
 )
 
 //func decryptRSA(secret string) {
@@ -35,6 +36,7 @@ func encryptRSA(filePath string) (error) {
 
   // Slurp and parse public key to encrypt AES Session Key
   keySlurp, err := ioutil.ReadFile("./id_rsa.pub")
+  check(err, "Unable to read public key")
   publicBlock, _ := pem.Decode(keySlurp)
   if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
     check(errors.New("Failed to decode PEM block containing public key"), "Failed to decode PEM block containing public key")
@@ -76,19 +78,23 @@ func encryptRSA(filePath string) (error) {
   return nil
 }
 
-func generateRSA4096(secret string) (privateKey []byte, publicKey []byte, err error) {
+func generateRSA4096(secret string) {
+  privateFilename := "./id_rsa"
+  publicFilename  := privateFilename + ".pub"
+  if fileExists(privateFilename) && fileExists(publicFilename) {
+    return
+  }
+
   rng := rand.Reader
 
   // private1 *rsa.PrivateKey;
   // err error;
-  private1, err := rsa.GenerateKey(rand.Reader, 4096)
-
+  private1, err := rsa.GenerateKey(rng, 4096)
   check(err, "Failed to generate private key.")
 
   err = private1.Validate()
   check(err, "Validation failed.")
 
-  // Get der format. priv_der []byte
   privateDer := x509.MarshalPKCS1PrivateKey(private1)
 
   // pem.Block
@@ -108,9 +114,7 @@ func generateRSA4096(secret string) (privateKey []byte, publicKey []byte, err er
   privatePem := pem.EncodeToMemory(private3)
 
   // Public Key generation
-  public1 := private1.PublicKey
-
-  publicDer, err := x509.MarshalPKIXPublicKey(&public1)
+  publicDer, err := x509.MarshalPKIXPublicKey(&private1.PublicKey)
   check(err, "Failed to get der format for PublicKey.")
 
   public2 := pem.Block{
@@ -120,6 +124,8 @@ func generateRSA4096(secret string) (privateKey []byte, publicKey []byte, err er
   }
   publicPem := pem.EncodeToMemory(&public2)
 
-  return privatePem, publicPem, nil
+  fmt.Println(";;Writing keypair")
+  _ = ioutil.WriteFile(privateFilename, privatePem, 0400)
+  _ = ioutil.WriteFile(publicFilename,  publicPem, 0644)
 }
 

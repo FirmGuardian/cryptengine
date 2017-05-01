@@ -14,33 +14,37 @@ package main
 import (
 	"fmt"
   "flag"
+  "os"
 )
 
 func main() {
+  decryptPtr := flag.Bool("decrypt", false, "Decrypt the given file")
+  encryptPtr := flag.Bool("encrypt", false, "Encrypt the given file")
   keygenPtr := flag.Bool("keygen", false, "Generates a new key pair")
 
-  methodPtr := flag.String("method", "rsa", "Declares method of encryption/keygen")
+  methodPtr := flag.String("method", "", "Declares method of encryption/keygen")
 
   flag.Parse()
 
-  //fmt.Println("keygen:", *keygenPtr)
-  //fmt.Println("method:", *methodPtr)
+  if *methodPtr == "" {
+    fmt.Fprintf(os.Stderr, "You must provide a cryptographic method.\n", os.Args[0])
+    fmt.Fprintln(os.Stderr, "")
+    flag.PrintDefaults()
+    os.Exit(0)
+  } else {
+    if *keygenPtr {
+      passphrase := "t1n@ b3LcHeR_lov3s!bUtts+"
 
-  if *keygenPtr {
-    passphrase := "t1n@ b3LcHeR_lov3s!bUtts+"
-
-    fmt.Println(";;Generating keypair")
-    privatePem, publicPem, err := generateRSA4096(passphrase)
-    check(err, "Something has gone awry.")
-
-    fmt.Println(";;Writing keypair")
-    writeKeyPair(privatePem, publicPem, *methodPtr)
+      fmt.Println(";;Generating keypair")
+      generateRSA4096(passphrase)
+    } else if *decryptPtr {
+      fmt.Println("DO DECRYPTION")
+    } else if *encryptPtr {
+      fmt.Println(";;Encrypting file")
+      err := encryptRSA("./mysecretdata.txt")
+      check(err, "Could not encrypt data, or write encrypted file!")
+    }
   }
-
-
-  fmt.Println(";;Encrypting file")
-  err := encryptRSA("./mysecretdata.txt")
-  check(err, "Could not encrypt data, or write encrypted file!")
 
 	// Parsable output <STATUS>::<SZ_PRIV_KEY>::<SZ_PUB_KEY>
 	fmt.Println("OK")
