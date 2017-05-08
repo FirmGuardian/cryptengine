@@ -17,12 +17,20 @@ import (
   "os"
 )
 
-func main() {
-  decryptPtr := flag.Bool("decrypt", false, "Decrypt the given file")
-  encryptPtr := flag.Bool("encrypt", false, "Encrypt the given file")
-  keygenPtr := flag.Bool("keygen", false, "Generates a new key pair")
+func genThoseKeys() {
+  passphrase := "t1n@ b3LcHeR_lov3s!bUtts+"
 
-  methodPtr := flag.String("method", "", "Declares method of encryption/keygen")
+  fmt.Println(";;Generating keypair")
+  generateRSA4096(passphrase)
+}
+
+func main() {
+  decryptPtr := flag.Bool("d", false, "Decrypt the given file")
+  encryptPtr := flag.Bool("e", false, "Encrypt the given file")
+  keygenPtr  := flag.Bool("gen", false, "Generates a new key pair")
+
+  methodPtr  := flag.String("t", "", "Declares method of encryption/keygen")
+  //filePtr    := flag.String("f", "", "File to de/encrypt")
 
   flag.Parse()
 
@@ -33,12 +41,10 @@ func main() {
     os.Exit(0)
   } else {
     if *keygenPtr {
-      passphrase := "t1n@ b3LcHeR_lov3s!bUtts+"
-
-      fmt.Println(";;Generating keypair")
-      generateRSA4096(passphrase)
+      genThoseKeys()
     } else if *decryptPtr {
-      fmt.Println("DO DECRYPTION")
+      fmt.Println(";;Decrypting file")
+      decryptRSA("./mysecretdata.txt.encrypted")
     } else if *encryptPtr {
       fmt.Println(";;Encrypting file")
       err := encryptRSA("./mysecretdata.txt")
