@@ -88,7 +88,14 @@ func decryptRSA(filePath string) {
   decryptedData, err := aesgcm.Open(nil, nonce, encryptedData, nil)
   check(err, "Unable to decrypt data")
 
-  fmt.Print(string(decryptedData))
+  nixIfExists(filePath + ".decrypted")
+  outFile, err := os.Create(filePath + ".decrypted")
+  check(err, "Unable to create output file")
+  defer outFile.Close()
+  w := bufio.NewWriter(outFile)
+
+  w.Write(decryptedData)
+  w.Flush()
 }
 
 func encryptRSA(filePath string) (error) {
