@@ -14,7 +14,6 @@ import (
   "crypto/aes"
   "io"
   "crypto/cipher"
-  "fmt"
 )
 
 func decryptRSA(filePath string) {
@@ -23,34 +22,28 @@ func decryptRSA(filePath string) {
   r := bufio.NewReader(inFile)
 
   publicKeyHash64 := make([]byte, 88)
-  nn, err := r.Read(publicKeyHash64)
+  _, err = r.Read(publicKeyHash64)
   check(err, "Error reading publicKeyHash")
 
   encryptedKey64 := make([]byte, 684)
-  nn, err = r.Read(encryptedKey64)
+  _, err = r.Read(encryptedKey64)
   check(err, "Error reading encrypted key")
   encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
 
   nonce64 := make([]byte, 16)
-  nn, err = r.Read(nonce64)
+  _, err = r.Read(nonce64)
   nonce, _ := base64.StdEncoding.DecodeString(string(nonce64))
 
-  x := uint64(r.Buffered())
+  szEncryptedData := uint64(r.Buffered())
 
-  if x > maxInputFileSize + 4096 {
+  if szEncryptedData > maxInputFileSize + 4096 {
     check(errors.New("Encrypted file is larger than maximum!"), "Encrypted file is larger than maximum!")
   }
 
   encryptedData64 := make([]byte, r.Buffered()) // max encryptable filesize + pad
-  nn, err = r.Read(encryptedData64)
+  _, err = r.Read(encryptedData64)
   inFile.Close()
   check(err, "Error reading encryptedData")
-  fmt.Print(";;Read ")
-  fmt.Print(nn)
-  fmt.Println(" bytes of encrypted data")
-
-  fmt.Print(";;")
-  fmt.Println(string(encryptedData64) + "\n")
 
   encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
   check(err, "Unable to deserialize encrypted data")
@@ -73,14 +66,8 @@ func decryptRSA(filePath string) {
   sessionKey, err := rsa.DecryptOAEP(hash, rng, privatePKCS, encryptedKey, []byte(""))
   check(err, "Unable to decrypt cipherkey")
 
-  fmt.Print(";;sessionKey = ")
-  fmt.Println(base64.StdEncoding.EncodeToString(sessionKey))
-
   aesCipher, err := aes.NewCipher(sessionKey)
   check(err, "Unable to create AES cipher")
-
-  fmt.Print(";;Nonce = ")
-  fmt.Println(base64.StdEncoding.EncodeToString(nonce))
 
   aesgcm, err := cipher.NewGCM(aesCipher)
   check(err, "Unable to create GCM Block")
@@ -126,23 +113,16 @@ func encryptRSA(filePath string) (error) {
   publicKeyHash := sha3.New512()
   publicKeyHash.Write(publicBlock.Bytes)
 
-  nn, _ := w.WriteString(base64.StdEncoding.EncodeToString(publicKeyHash.Sum(nil)))
-  fmt.Print(";;Hash Bytes Written: ")
-  fmt.Println(nn)
+  w.WriteString(base64.StdEncoding.EncodeToString(publicKeyHash.Sum(nil)))
 
   hash := sha3.New512()
   rng := rand.Reader
-
-  fmt.Print(";;sessionKey = ")
-  fmt.Println(base64.StdEncoding.EncodeToString(sessionKey))
 
   encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
 
   encryptedSessionKey64 := base64.StdEncoding.EncodeToString(encryptedSessionKey)
 
-  nn, _ = w.Write([]byte(encryptedSessionKey64))
-  fmt.Print(";;Key Bytes written = ")
-  fmt.Println(nn)
+  w.Write([]byte(encryptedSessionKey64))
 
   // Create new AES block
   aesCipher, err := aes.NewCipher(sessionKey)
@@ -156,9 +136,7 @@ func encryptRSA(filePath string) (error) {
 
   nonce64 := base64.StdEncoding.EncodeToString(nonce)
 
-  nn, _ = w.Write([]byte(nonce64))
-  fmt.Print(";;Nonce bytes written = ")
-  fmt.Println(nn)
+  w.Write([]byte(nonce64))
 
   // Slurp file to be encrypted
   fSlurp, err := ioutil.ReadFile(filePath)
@@ -172,9 +150,7 @@ func encryptRSA(filePath string) (error) {
 
   encrypted64 := base64.StdEncoding.EncodeToString(encryptedBin)
 
-  nn, _ = w.Write([]byte(encrypted64))
-  fmt.Print(";;File Bytes Written: ")
-  fmt.Println(nn)
+  w.Write([]byte(encrypted64))
   w.Flush()
 
   return nil
@@ -226,7 +202,6 @@ func generateRSA4096(secret string) {
   }
   publicPem := pem.EncodeToMemory(&public2)
 
-  fmt.Println(";;Writing keypair")
   _ = ioutil.WriteFile(privateFilename, privatePem, 0400)
   _ = ioutil.WriteFile(publicFilename,  publicPem, 0644)
 }
