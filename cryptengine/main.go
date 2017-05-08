@@ -18,10 +18,8 @@ import (
 )
 
 func genThoseKeys() {
-  passphrase := "t1n@ b3LcHeR_lov3s!bUtts+"
-
   fmt.Println(";;Generating keypair")
-  generateRSA4096(passphrase)
+  generateRSA4096(constPassphrase)
 }
 
 func main() {
