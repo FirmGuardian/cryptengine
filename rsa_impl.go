@@ -22,13 +22,18 @@ func decryptRSA(filePath string) {
   check(err, "Unable to open encrypted file for reading")
   r := bufio.NewReader(inFile)
 
-  publicKeyHash := make([]byte, 88)
-  nn, err := r.Read(publicKeyHash)
+  publicKeyHash64 := make([]byte, 88)
+  nn, err := r.Read(publicKeyHash64)
   check(err, "Error reading publicKeyHash")
 
-  encryptedKey := make([]byte, 684)
-  nn, err = r.Read(encryptedKey)
+  encryptedKey64 := make([]byte, 684)
+  nn, err = r.Read(encryptedKey64)
   check(err, "Error reading encrypted key")
+  encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
+
+  nonce64 := make([]byte, 16)
+  nn, err = r.Read(nonce64)
+  nonce, _ := base64.StdEncoding.DecodeString(string(nonce64))
 
   x := uint64(r.Buffered())
 
@@ -36,24 +41,54 @@ func decryptRSA(filePath string) {
     check(errors.New("Encrypted file is larger than maximum!"), "Encrypted file is larger than maximum!")
   }
 
-  encryptedData := make([]byte, r.Buffered()) // max encryptable filesize + pad
-  nn, err = r.Read(encryptedData)
+  encryptedData64 := make([]byte, r.Buffered()) // max encryptable filesize + pad
+  nn, err = r.Read(encryptedData64)
+  inFile.Close()
   check(err, "Error reading encryptedData")
   fmt.Print(";;Read ")
   fmt.Print(nn)
   fmt.Println(" bytes of encrypted data")
 
   fmt.Print(";;")
-  fmt.Println(string(encryptedData) + "\n")
+  fmt.Println(string(encryptedData64) + "\n")
+
+  encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
+  check(err, "Unable to deserialize encrypted data")
 
   keySlurp, err :=ioutil.ReadFile("./id_rsa")
   check(err, "Unable to read private key")
   privateBlock, _ := pem.Decode(keySlurp)
-  if privateBlock == nil {
+  if privateBlock == nil || privateBlock.Type != "RSA PRIVATE KEY" {
     check(errors.New("Failed to decode PEM block containing private key"), "Failed to decode PEM block containing private key")
   }
 
-  inFile.Close()
+  der, err := x509.DecryptPEMBlock(privateBlock, []byte(constPassphrase))
+  check(err, "Unable to decrypt private block")
+
+  privatePKCS, err := x509.ParsePKCS1PrivateKey(der)
+  check(err, "Unable to parse decrypted private key")
+
+  hash := sha3.New512()
+  rng := rand.Reader
+  sessionKey, err := rsa.DecryptOAEP(hash, rng, privatePKCS, encryptedKey, []byte(""))
+  check(err, "Unable to decrypt cipherkey")
+
+  fmt.Print(";;sessionKey = ")
+  fmt.Println(base64.StdEncoding.EncodeToString(sessionKey))
+
+  aesCipher, err := aes.NewCipher(sessionKey)
+  check(err, "Unable to create AES cipher")
+
+  fmt.Print(";;Nonce = ")
+  fmt.Println(base64.StdEncoding.EncodeToString(nonce))
+
+  aesgcm, err := cipher.NewGCM(aesCipher)
+  check(err, "Unable to create GCM Block")
+
+  decryptedData, err := aesgcm.Open(nil, nonce, encryptedData, nil)
+  check(err, "Unable to decrypt data")
+
+  fmt.Print(string(decryptedData))
 }
 
 func encryptRSA(filePath string) (error) {
@@ -91,12 +126,15 @@ func encryptRSA(filePath string) (error) {
   hash := sha3.New512()
   rng := rand.Reader
 
+  fmt.Print(";;sessionKey = ")
+  fmt.Println(base64.StdEncoding.EncodeToString(sessionKey))
+
   encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
 
   encryptedSessionKey64 := base64.StdEncoding.EncodeToString(encryptedSessionKey)
 
   nn, _ = w.Write([]byte(encryptedSessionKey64))
-  fmt.Print(";;Key Bytes written: ")
+  fmt.Print(";;Key Bytes written = ")
   fmt.Println(nn)
 
   // Create new AES block
@@ -104,10 +142,16 @@ func encryptRSA(filePath string) (error) {
   check(err, "Unable to create AES cipher")
 
   // Generate nonce
-  nonce := make([]byte, 12)
-  if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+  nonce := make([]byte, lenAESNonce)
+  if _, err := io.ReadFull(rng, nonce); err != nil {
     panic(err.Error())
   }
+
+  nonce64 := base64.StdEncoding.EncodeToString(nonce)
+
+  nn, _ = w.Write([]byte(nonce64))
+  fmt.Print(";;Nonce bytes written = ")
+  fmt.Println(nn)
 
   // Slurp file to be encrypted
   fSlurp, err := ioutil.ReadFile(filePath)
