@@ -6,6 +6,8 @@ import (
   "os"
 )
 
+const maxInputFileSize uint64 = 1024 * 1024 * 1024 * 2 // 2GB; uint64 to support >= 4GB
+
 func check(e error, msg string) {
   if e != nil {
     fmt.Fprintln(os.Stderr, "ERR::" + msg)

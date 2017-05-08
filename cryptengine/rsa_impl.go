@@ -7,6 +7,7 @@ import (
   "io/ioutil"
   "crypto/rsa"
   "encoding/pem"
+  "encoding/base64"
   "golang.org/x/crypto/sha3"
   "bufio"
   "os"
@@ -16,18 +17,53 @@ import (
   "fmt"
 )
 
-//func decryptRSA(secret string) {
-//  hash := sha3.New512()
-//}
+func decryptRSA(filePath string) {
+  inFile, err := os.Open(filePath)
+  check(err, "Unable to open encrypted file for reading")
+  r := bufio.NewReader(inFile)
+
+  publicKeyHash := make([]byte, 88)
+  nn, err := r.Read(publicKeyHash)
+  check(err, "Error reading publicKeyHash")
+
+  encryptedKey := make([]byte, 684)
+  nn, err = r.Read(encryptedKey)
+  check(err, "Error reading encrypted key")
+
+  x := uint64(r.Buffered())
+
+  if x > maxInputFileSize + 4096 {
+    check(errors.New("Encrypted file is larger than maximum!"), "Encrypted file is larger than maximum!")
+  }
+
+  encryptedData := make([]byte, r.Buffered()) // max encryptable filesize + pad
+  nn, err = r.Read(encryptedData)
+  check(err, "Error reading encryptedData")
+  fmt.Print(";;Read ")
+  fmt.Print(nn)
+  fmt.Println(" bytes of encrypted data")
+
+  fmt.Print(";;")
+  fmt.Println(string(encryptedData) + "\n")
+
+  keySlurp, err :=ioutil.ReadFile("./id_rsa")
+  check(err, "Unable to read private key")
+  privateBlock, _ := pem.Decode(keySlurp)
+  if privateBlock == nil {
+    check(errors.New("Failed to decode PEM block containing private key"), "Failed to decode PEM block containing private key")
+  }
+
+  inFile.Close()
+}
 
 func encryptRSA(filePath string) (error) {
   outFilePath := filePath + ".encrypted"
   nixIfExists(outFilePath)
 
   // Create output file, and Writer
-  of, err := os.Create(outFilePath)
-  defer of.Close()
-  w := bufio.NewWriter(of)
+  outFile, err := os.Create(outFilePath)
+  defer outFile.Close()
+  w := bufio.NewWriter(outFile)
 
   // Generate AES Session Key; to be RSA encrypted, and used to
   // encrypt input file
@@ -45,12 +81,23 @@ func encryptRSA(filePath string) (error) {
   publicKey, err := x509.ParsePKIXPublicKey(publicBlock.Bytes)
   check(err, "Unable to parse public key")
 
+  publicKeyHash := sha3.New512()
+  publicKeyHash.Write(publicBlock.Bytes)
+
+  nn, _ := w.WriteString(base64.StdEncoding.EncodeToString(publicKeyHash.Sum(nil)))
+  fmt.Print(";;Hash Bytes Written: ")
+  fmt.Println(nn)
+
   hash := sha3.New512()
   rng := rand.Reader
 
   encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
 
-  w.Write(encryptedSessionKey)
+  encryptedSessionKey64 := base64.StdEncoding.EncodeToString(encryptedSessionKey)
+
+  nn, _ = w.Write([]byte(encryptedSessionKey64))
+  fmt.Print(";;Key Bytes written: ")
+  fmt.Println(nn)
 
   // Create new AES block
   aesCipher, err := aes.NewCipher(sessionKey)
@@ -70,9 +117,13 @@ func encryptRSA(filePath string) (error) {
   aesgcm, err := cipher.NewGCM(aesCipher)
   check(err, "Unable to create new AES cipher")
 
-  encrypted := aesgcm.Seal(nil, nonce, fSlurp, nil)
+  encryptedBin := aesgcm.Seal(nil, nonce, fSlurp, nil)
 
-  w.Write(encrypted)
+  encrypted64 := base64.StdEncoding.EncodeToString(encryptedBin)
+
+  nn, _ = w.Write([]byte(encrypted64))
+  fmt.Print(";;File Bytes Written: ")
+  fmt.Println(nn)
   w.Flush()
 
   return nil
@@ -107,7 +158,7 @@ func generateRSA4096(secret string) {
 
   // Encrypt the pem
   private3, err := x509.EncryptPEMBlock(rng, private2.Type, private2.Bytes, []byte(secret), x509.PEMCipherAES256)
-  check(err, "Failed to encrupt PEM private block")
+  check(err, "Failed to encrypt PEM private block")
 
   // Resultant private key in PEM format.
   // priv_pem string
