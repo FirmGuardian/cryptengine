@@ -11,9 +11,6 @@ import (
   "golang.org/x/crypto/sha3"
   "bufio"
   "os"
-  "crypto/aes"
-  "io"
-  "crypto/cipher"
 )
 
 func decryptRSA(filePath string) {
@@ -66,14 +63,10 @@ func decryptRSA(filePath string) {
   sessionKey, err := rsa.DecryptOAEP(hash, rng, privatePKCS, encryptedKey, []byte(""))
   check(err, "Unable to decrypt cipherkey")
 
-  aesCipher, err := aes.NewCipher(sessionKey)
-  check(err, "Unable to create AES cipher")
-
-  aesgcm, err := cipher.NewGCM(aesCipher)
-  check(err, "Unable to create GCM Block")
-
-  decryptedData, err := aesgcm.Open(nil, nonce, encryptedData, nil)
-  check(err, "Unable to decrypt data")
+  // BEGIN AES DECRYPT (sessionKey, nonce, encryptedData)
+  decryptedData, err := decryptAES(sessionKey, nonce, encryptedData)
+  check(err, "Unable to decrypt file")
+  // END AES DECRYPT
 
   nixIfExists(filePath + ".decrypted")
   outFile, err := os.Create(filePath + ".decrypted")
@@ -94,10 +87,7 @@ func encryptRSA(filePath string) (error) {
   defer outFile.Close()
   w := bufio.NewWriter(outFile)
 
-  // Generate AES Session Key; to be RSA encrypted, and used to
-  // encrypt input file
-  sessionKey, err := generateRandomBytes(32)
-  check(err, "Unable to generate sessionKey")
+
 
   // Slurp and parse public key to encrypt AES Session Key
   keySlurp, err := ioutil.ReadFile("./id_rsa.pub")
@@ -118,39 +108,24 @@ func encryptRSA(filePath string) (error) {
   hash := sha3.New512()
   rng := rand.Reader
 
-  encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
-
-  encryptedSessionKey64 := base64.StdEncoding.EncodeToString(encryptedSessionKey)
-
-  w.Write([]byte(encryptedSessionKey64))
-
-  // Create new AES block
-  aesCipher, err := aes.NewCipher(sessionKey)
-  check(err, "Unable to create AES cipher")
-
-  // Generate nonce
-  nonce := make([]byte, lenAESNonce)
-  if _, err := io.ReadFull(rng, nonce); err != nil {
-    panic(err.Error())
-  }
-
-  nonce64 := base64.StdEncoding.EncodeToString(nonce)
-
-  w.Write([]byte(nonce64))
-
   // Slurp file to be encrypted
   fSlurp, err := ioutil.ReadFile(filePath)
   check(err, "Unable to read file to be secured.")
 
-  // Do the deed.
-  aesgcm, err := cipher.NewGCM(aesCipher)
-  check(err, "Unable to create new AES cipher")
+  // BEGIN AES ENCRYPTION
+  encryptedBin, nonce, sessionKey, err := encryptAES(fSlurp)
 
-  encryptedBin := aesgcm.Seal(nil, nonce, fSlurp, nil)
+  encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
+  encryptedSessionKey64 := base64.StdEncoding.EncodeToString(encryptedSessionKey)
+
+  w.Write([]byte(encryptedSessionKey64))
+
+  nonce64 := base64.StdEncoding.EncodeToString(nonce)
+  w.Write([]byte(nonce64))
 
   encrypted64 := base64.StdEncoding.EncodeToString(encryptedBin)
-
   w.Write([]byte(encrypted64))
+
   w.Flush()
 
   return nil
