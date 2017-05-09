@@ -68,8 +68,9 @@ func decryptRSA(filePath string) {
   check(err, "Unable to decrypt file")
   // END AES DECRYPT
 
-  nixIfExists(filePath + ".decrypted")
-  outFile, err := os.Create(filePath + ".decrypted")
+  outFilePath, err := getDecryptedFilename(filePath)
+  nixIfExists(outFilePath)
+  outFile, err := os.Create(outFilePath)
   check(err, "Unable to create output file")
   defer outFile.Close()
   w := bufio.NewWriter(outFile)
@@ -79,15 +80,13 @@ func decryptRSA(filePath string) {
 }
 
 func encryptRSA(filePath string) (error) {
-  outFilePath := filePath + ".encrypted"
+  outFilePath := getEncryptedFilename(filePath)
   nixIfExists(outFilePath)
 
   // Create output file, and Writer
   outFile, err := os.Create(outFilePath)
   defer outFile.Close()
   w := bufio.NewWriter(outFile)
-
-
 
   // Slurp and parse public key to encrypt AES Session Key
   keySlurp, err := ioutil.ReadFile("./id_rsa.pub")
