@@ -4,10 +4,13 @@ import (
   "crypto/rand"
   "fmt"
   "os"
+  "strings"
+  "errors"
 )
 
-const maxInputFileSize uint64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 const constPassphrase string = "t1n@ b3LcHeR_lov3s!bUtts+"
+const legalCryptFileExtension string = ".lcsf"
+const maxInputFileSize uint64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 
 func check(e error, msg string) {
   if e != nil {
@@ -32,6 +35,17 @@ func generateRandomBytes(s int) ([]byte, error) {
   }
 
   return b, nil
+}
+
+func getDecryptedFilename(fname string) (string, error) {
+  if strings.LastIndex(fname, legalCryptFileExtension) < 0 {
+    return "", errors.New(fname + " does not appear to be a valid LegalCrypt Protected File")
+  }
+  return strings.Replace(fname, legalCryptFileExtension, "", -1), nil
+}
+
+func getEncryptedFilename(fname string) string {
+  return fname + legalCryptFileExtension
 }
 
 func nixIfExists(filePath string) {

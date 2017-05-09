@@ -28,7 +28,7 @@ func main() {
   keygenPtr  := flag.Bool("gen", false, "Generates a new key pair")
 
   methodPtr  := flag.String("t", "", "Declares method of encryption/keygen")
-  //filePtr    := flag.String("f", "", "File to de/encrypt")
+  filePtr    := flag.String("f", "", "File to de/encrypt")
 
   flag.Parse()
 
@@ -36,17 +36,34 @@ func main() {
     fmt.Fprintf(os.Stderr, "You must provide a cryptographic method.\n", os.Args[0])
     fmt.Fprintln(os.Stderr, "")
     flag.PrintDefaults()
-    os.Exit(0)
+    os.Exit(1)
   } else {
     if *keygenPtr {
       genThoseKeys()
-    } else if *decryptPtr {
-      fmt.Println(";;Decrypting file")
-      decryptRSA("./mysecretdata.txt.encrypted")
-    } else if *encryptPtr {
-      fmt.Println(";;Encrypting file")
-      err := encryptRSA("./mysecretdata.txt")
-      check(err, "Could not encrypt data, or write encrypted file!")
+    } else if *filePtr != "" {
+      if *decryptPtr {
+        fmt.Println(";;Decrypting file")
+        switch *methodPtr {
+        default:
+          fmt.Println("ERR::Unknown decryption method")
+          os.Exit(2)
+        case "rsa":
+          decryptRSA(*filePtr)
+        }
+      } else if *encryptPtr {
+        fmt.Println(";;Encrypting file")
+        switch *methodPtr {
+        default:
+          fmt.Println("ERR::Unknown encryption method")
+          os.Exit(2)
+        case "rsa":
+          err := encryptRSA(*filePtr)
+          check(err, "Could not encrypt data, or write encrypted file!")
+        }
+      }
+    } else {
+      flag.PrintDefaults()
+      os.Exit(1)
     }
   }
 
