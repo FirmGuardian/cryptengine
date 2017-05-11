@@ -8,9 +8,11 @@ import (
   "errors"
 )
 
-const constPassphrase string = "t1n@ b3LcHeR_lov3s!bUtts+"
-const legalCryptFileExtension string = ".lcsf"
-const maxInputFileSize uint64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
+const (
+  constPassphrase string         = "t1n@ b3LcHeR_lov3s!bUtts+"
+  legalCryptFileExtension string = ".lcsf"
+  maxInputFileSize uint64        = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
+)
 
 func check(e error, msg string) {
   if e != nil {
