@@ -6,6 +6,13 @@
  * followed one important rule throughout the application's source:
  *
  * "Don't be crafty."
+ *
+ * WRT the mantra of this codebase, I was sure to ask myself:
+ * 1) Am I a cryptologist?
+ * 2) Am I a wizbang mathemetician?
+ * 3) Am I a contributor to a FIPS-certified cryptographic process?
+ *
+ * "Don't be crafty."
  */
 package main
 
