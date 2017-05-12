@@ -9,7 +9,7 @@ import (
 )
 
 const (
-  constPassphrase string         = "t1n@ b3LcHeR_lov3s!bUtts+"
+  constPassphrase string         = ""
   legalCryptFileExtension string = ".lcsf"
   maxInputFileSize uint64        = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 )
