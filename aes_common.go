@@ -3,8 +3,6 @@ package main
 import (
   "crypto/aes"
   "crypto/cipher"
-  "io"
-  "crypto/rand"
 )
 
 const lenAESNonce uint8 = 12
@@ -23,8 +21,6 @@ func decryptAES(key []byte, nonce []byte, encryptedData []byte) ([]byte, error) 
 }
 
 func encryptAES(unencryptedData []byte) ([]byte, []byte, []byte, error) {
-  rng := rand.Reader
-
   // Generate AES Session Key; to be RSA encrypted, and used to
   // encrypt input file
   key, err := generateRandomBytes(32)
