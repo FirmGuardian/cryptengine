@@ -41,7 +41,7 @@ func decryptRSA(filePath string) {
   }
 
   encryptedData64 := make([]byte, szEncryptedData) // max encryptable filesize + pad
-  _, err = r.Read(encryptedData64)
+  _, err = r.Read(encryptedData64[:cap(encryptedData64)])
   inFile.Close()
   check(err, "Error reading encryptedData")
 
