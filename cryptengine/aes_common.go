@@ -34,10 +34,7 @@ func encryptAES(unencryptedData []byte) ([]byte, []byte, []byte, error) {
   check(err, "Unable to create AES cipher")
 
   // Generate nonce
-  nonce := make([]byte, lenAESNonce)
-  if _, err := io.ReadFull(rng, nonce); err != nil {
-    check(err, err.Error())
-  }
+  nonce, _ := generateRandomBytes(int(lenAESNonce))
 
   aesgcm, err := cipher.NewGCM(aesCipher)
   check(err, "Unable to create new AES cipher")

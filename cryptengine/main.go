@@ -1,13 +1,11 @@
 /*
- * Generates a private/public key pair in PEM format (not Certificate)
+ * Cryptengine is the cryptographic core of the electron client app.
  *
- * The generated private key can be parsed with openssl as follows:
- * > openssl rsa -in key.pem -text
+ * Its function is to facilitate keypair generation, as well as
+ * file de/encryption. The code may seem simple and mundane, but I
+ * followed one important rule throughout the application's source:
  *
- * The generated public key can be parsed as follows:
- * > openssl rsa -pubin -in pub.pem -text
- *
- * TODO: Add support for additional encryption methods -Liam
+ * "Don't be crafty."
  */
 package main
 
