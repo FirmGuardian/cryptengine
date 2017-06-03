@@ -19,7 +19,7 @@ gulp.task('bundle', () => {
 });
 
 gulp.task('sass', () => {
-  return gulp.src(srcDir.path('stylesheets/main.sass'))
+  return gulp.src(srcDir.path('stylesheets/main.scss'))
   .pipe(plumber())
   .pipe(sass().on('error', sass.logError))
   .pipe(gulp.dest(destDir.path('stylesheets')));
