@@ -46,7 +46,6 @@ func main() {
   if *keygenPtr {
     genThoseKeys()
   } else if numFiles > 0 {
-  //} else if *filePtr != "" {
     if *decryptPtr {
       fmt.Println(";;Decrypting file")
       switch *methodPtr {
