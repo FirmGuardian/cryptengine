@@ -32,46 +32,48 @@ func main() {
   encryptPtr := flag.Bool("e", false, "Encrypt the given file")
   keygenPtr  := flag.Bool("gen", false, "Generates a new key pair")
 
-  methodPtr  := flag.String("t", "", "Declares method of encryption/keygen")
-  filePtr    := flag.String("f", "", "File to de/encrypt")
+  methodPtr  := flag.String("t", "rsa", "Declares method of encryption/keygen")
+  //filePtr    := flag.String("f", "", "File to de/encrypt")
+  decryptToken := flag.String("dt", "", "Decrypt token provided by server")
 
   flag.Parse()
 
-  if *methodPtr == "" {
-    fmt.Fprintf(os.Stderr, "You must provide a cryptographic method.\n", os.Args[0])
-    fmt.Fprintln(os.Stderr, "")
+  tail := flag.Args()
+
+  numFiles := len(tail)
+  fmt.Printf(";;Tail Size %d\n", numFiles)
+
+  if *keygenPtr {
+    genThoseKeys()
+  } else if numFiles > 0 {
+  //} else if *filePtr != "" {
+    if *decryptPtr {
+      fmt.Println(";;Decrypting file")
+      switch *methodPtr {
+      default:
+        fmt.Println("ERR::Unknown decryption method")
+        os.Exit(2)
+      case "rsa":
+        fmt.Printf(";;DecryptToken = %s\n", *decryptToken)
+        decryptRSA(tail[0])
+      }
+    } else if *encryptPtr {
+      fmt.Println(";;Encrypting file(s)")
+      switch *methodPtr {
+      default:
+        fmt.Println("ERR::Unknown encryption method")
+        os.Exit(2)
+      case "rsa":
+        err := encryptRSA(tail[0])
+        check(err, "Could not encrypt data, or write encrypted file!")
+      }
+    }
+  } else {
+    fmt.Println("ERR::Usage: cryptengine [options] file1 (file2 file3...)")
     flag.PrintDefaults()
     os.Exit(1)
-  } else {
-    if *keygenPtr {
-      genThoseKeys()
-    } else if *filePtr != "" {
-      if *decryptPtr {
-        fmt.Println(";;Decrypting file")
-        switch *methodPtr {
-        default:
-          fmt.Println("ERR::Unknown decryption method")
-          os.Exit(2)
-        case "rsa":
-          decryptRSA(*filePtr)
-        }
-      } else if *encryptPtr {
-        fmt.Println(";;Encrypting file")
-        switch *methodPtr {
-        default:
-          fmt.Println("ERR::Unknown encryption method")
-          os.Exit(2)
-        case "rsa":
-          err := encryptRSA(*filePtr)
-          check(err, "Could not encrypt data, or write encrypted file!")
-        }
-      }
-    } else {
-      flag.PrintDefaults()
-      os.Exit(1)
-    }
   }
 
-	// Parsable output <STATUS>::<SZ_PRIV_KEY>::<SZ_PUB_KEY>
+	// Parsable output <STATUS>
 	fmt.Println("OK")
 }
