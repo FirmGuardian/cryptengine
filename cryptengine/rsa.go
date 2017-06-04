@@ -36,7 +36,7 @@ func decryptRSA(filePath string) {
 
   szEncryptedData := uint64(r.Buffered())
 
-  if szEncryptedData > maxInputFileSize + 4096 {
+  if szEncryptedData > maxInputFileSize + 4096 { // pad max filesize by arbitrary 4k to account for our dick meta
     check(errors.New("Encrypted file is larger than maximum!"), "Encrypted file is larger than maximum!")
   }
 
@@ -49,7 +49,7 @@ func decryptRSA(filePath string) {
   check(err, "Unable to deserialize encrypted data")
 
   keySlurp, err :=ioutil.ReadFile("./id_rsa")
-  check(err, "Unable to read private key")
+  check(err, "Unable to read private key, or doesn't exist")
   privateBlock, _ := pem.Decode(keySlurp)
   if privateBlock == nil || privateBlock.Type != "RSA PRIVATE KEY" {
     check(errors.New("Failed to decode PEM block containing private key"), "Failed to decode PEM block containing private key")
@@ -93,7 +93,7 @@ func encryptRSA(filePath string) (error) {
 
   // Slurp and parse public key to encrypt AES Session Key
   keySlurp, err := ioutil.ReadFile("./id_rsa.pub")
-  check(err, "Unable to read public key")
+  check(err, "Unable to read public key or doesn't exist")
   publicBlock, _ := pem.Decode(keySlurp)
   if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
     check(errors.New("Failed to decode PEM block containing public key"), "Failed to decode PEM block containing public key")

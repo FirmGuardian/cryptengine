@@ -17,6 +17,7 @@
 package main
 
 import (
+  "errors"
 	"fmt"
   "flag"
   "os"
@@ -32,46 +33,65 @@ func main() {
   encryptPtr := flag.Bool("e", false, "Encrypt the given file")
   keygenPtr  := flag.Bool("gen", false, "Generates a new key pair")
 
-  methodPtr  := flag.String("t", "", "Declares method of encryption/keygen")
-  filePtr    := flag.String("f", "", "File to de/encrypt")
+  methodPtr  := flag.String("t", "rsa", "Declares method of encryption/keygen")
+  decryptToken := flag.String("dt", "", "Decrypt token provided by server")
 
   flag.Parse()
 
-  if *methodPtr == "" {
-    fmt.Fprintf(os.Stderr, "You must provide a cryptographic method.\n", os.Args[0])
-    fmt.Fprintln(os.Stderr, "")
-    flag.PrintDefaults()
-    os.Exit(1)
-  } else {
-    if *keygenPtr {
-      genThoseKeys()
-    } else if *filePtr != "" {
-      if *decryptPtr {
-        fmt.Println(";;Decrypting file")
-        switch *methodPtr {
-        default:
-          fmt.Println("ERR::Unknown decryption method")
-          os.Exit(2)
-        case "rsa":
-          decryptRSA(*filePtr)
-        }
-      } else if *encryptPtr {
-        fmt.Println(";;Encrypting file")
+  tail := flag.Args()
+
+  numFiles := len(tail)
+  fmt.Printf(";;Tail Size %d\n", numFiles)
+
+  if *keygenPtr {
+    genThoseKeys()
+  } else if numFiles > 0 {
+    if *decryptPtr {
+      fmt.Println(";;Decrypting file")
+      switch *methodPtr {
+      default:
+        fmt.Println("ERR::Unknown decryption method")
+        os.Exit(2)
+      case "rsa":
+        fmt.Printf(";;DecryptToken = %s\n", *decryptToken)
+
+        decryptRSA(tail[0])
+      }
+    } else if *encryptPtr {
+      fmt.Println(";;Encrypting file(s)")
+
+      // the following is temporary until multiple files/dirs are supported
+      f0info, err := os.Stat(tail[0])
+      check(err, "Something is fucky with " + tail[0])
+      f0mode := f0info.Mode()
+      isRegular := f0mode.IsRegular()
+      isDirectory := f0mode.IsDir()
+
+      if numFiles > 1 || (numFiles == 1 && isDirectory) {
+        zipPath := archiveFiles(tail)
+        err := encryptRSA(zipPath)
+        check(err, "Error encrypting generated zip archive")
+
+        os.Remove(zipPath)
+      } else if numFiles == 1 && isRegular == true {
         switch *methodPtr {
         default:
           fmt.Println("ERR::Unknown encryption method")
           os.Exit(2)
         case "rsa":
-          err := encryptRSA(*filePtr)
+          err := encryptRSA(tail[0])
           check(err, "Could not encrypt data, or write encrypted file!")
         }
+      } else {
+        check(errors.New("WTF?"), "WTF?")
       }
-    } else {
-      flag.PrintDefaults()
-      os.Exit(1)
     }
+  } else {
+    fmt.Println("ERR::Usage: cryptengine [options] file1 (file2 file3...)")
+    flag.PrintDefaults()
+    os.Exit(1)
   }
 
-	// Parsable output <STATUS>::<SZ_PRIV_KEY>::<SZ_PUB_KEY>
+	// Parsable output <STATUS>
 	fmt.Println("OK")
 }
