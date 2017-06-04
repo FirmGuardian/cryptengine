@@ -36,7 +36,7 @@ func decryptRSA(filePath string) {
 
   szEncryptedData := uint64(r.Buffered())
 
-  if szEncryptedData > maxInputFileSize + 4096 {
+  if szEncryptedData > maxInputFileSize + 4096 { // pad max filesize by arbitrary 4k to account for our dick meta
     check(errors.New("Encrypted file is larger than maximum!"), "Encrypted file is larger than maximum!")
   }
 

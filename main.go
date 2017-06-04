@@ -54,17 +54,32 @@ func main() {
         os.Exit(2)
       case "rsa":
         fmt.Printf(";;DecryptToken = %s\n", *decryptToken)
+
         decryptRSA(tail[0])
       }
     } else if *encryptPtr {
       fmt.Println(";;Encrypting file(s)")
-      switch *methodPtr {
-      default:
-        fmt.Println("ERR::Unknown encryption method")
-        os.Exit(2)
-      case "rsa":
-        err := encryptRSA(tail[0])
-        check(err, "Could not encrypt data, or write encrypted file!")
+
+      // the following is temporary until multiple files/dirs are supported
+      f0info, err := os.Stat(tail[0])
+      check(err, "Something is fucky with " + tail[0])
+      f0mode := f0info.Mode()
+      isRegular := f0mode.IsRegular()
+      isDirectory := f0mode.IsDir()
+
+      if numFiles > 1 || (numFiles == 1 && isDirectory) {
+        archiveFiles(tail)
+      }
+
+      if isRegular == true {
+        switch *methodPtr {
+        default:
+          fmt.Println("ERR::Unknown encryption method")
+          os.Exit(2)
+        case "rsa":
+          err := encryptRSA(tail[0])
+          check(err, "Could not encrypt data, or write encrypted file!")
+        }
       }
     }
   } else {
