@@ -7,10 +7,11 @@ import (
 )
 
 func archiveFiles(paths []string) string {
-  zipPath := "./lcsf_secured_files.zip"
+  archivePath := "./lcsf_secured_files.zip"
 
-  zip := new(archivex.ZipFile)
-  zip.Create(zipPath)
+  archive := new(archivex.ZipFile)
+  archive.Create(archivePath)
+  defer archive.Close()
 
   var skipped []string
 
@@ -23,21 +24,19 @@ func archiveFiles(paths []string) string {
     isreg := fmode.IsRegular()
 
     if isreg {
-      zip.AddFile(path)
+      archive.AddFile(path)
       fmt.Printf("ZIP::Adding file %s\n", path)
     } else if isdir {
-      zip.AddAll(path, false)
+      archive.AddAll(path, false)
       fmt.Printf("ZIP::Adding directory %s\n", path)
     } else {
       skipped = append(skipped, path)
     }
-
-    zip.Close()
 
     for _, spath := range skipped {
       fmt.Printf("SKIPPED::%s\n", spath)
     }
   }
 
-  return zipPath
+  return archivePath
 }
