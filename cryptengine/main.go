@@ -17,6 +17,7 @@
 package main
 
 import (
+  "errors"
 	"fmt"
   "flag"
   "os"
@@ -68,10 +69,12 @@ func main() {
       isDirectory := f0mode.IsDir()
 
       if numFiles > 1 || (numFiles == 1 && isDirectory) {
-        archiveFiles(tail)
-      }
+        zipPath := archiveFiles(tail)
+        err := encryptRSA(zipPath)
+        check(err, "Error encrypting generated zip archive")
 
-      if isRegular == true {
+        os.Remove(zipPath)
+      } else if numFiles == 1 && isRegular == true {
         switch *methodPtr {
         default:
           fmt.Println("ERR::Unknown encryption method")
@@ -80,6 +83,8 @@ func main() {
           err := encryptRSA(tail[0])
           check(err, "Could not encrypt data, or write encrypted file!")
         }
+      } else {
+        check(errors.New("WTF?"), "WTF?")
       }
     }
   } else {
