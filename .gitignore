@@ -7,8 +7,8 @@ Thumbs.db
 .idea
 .vs
 
-/cryptengine/cryptengine
-/cryptengine/cryptengine.exe
+cryptengine
+cryptengine.exe
 
 # ignore everything in 'app' folder what had been generated from 'src' folder
 /app/stylesheets
