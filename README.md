@@ -1,3 +1,7 @@
+# Getting Started
+
+## Building the Project
+
 # Command: `cryptengine`
 
 ## Usage

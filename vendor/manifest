@@ -1,0 +1,18 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/jhoonb/archivex",
+			"repository": "https://github.com/jhoonb/archivex",
+			"revision": "be4efa7ec0c38ab76d56037014c90d48d6b13037",
+			"branch": "master"
+		},
+		{
+			"importpath": "golang.org/x/crypto/sha3",
+			"repository": "https://go.googlesource.com/crypto",
+			"revision": "7f7c0c2d75ebb4e32a21396ce36e87b6dadc91c9",
+			"branch": "master",
+			"path": "/sha3"
+		}
+	]
+}
