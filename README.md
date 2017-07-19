@@ -2,6 +2,16 @@
 
 ## Building the Project
 
+1) Golang: This version of `cryptengine` uses Go v1.8.3. You can find that [here](https://golang.org/dl/).
+2) GB: This project has been scaffolded for GB. You can find that [here](https://getgb.io/docs/install/).
+3) In the root of the project, type `gb build all`.
+
+## Updating Vendor Libraries
+
+In the project root, type `gb vendor update <library_name>`.
+
+To blindly update all vendor libraries, use `-all` instead of the name of a library.
+
 # Command: `cryptengine`
 
 ## Usage
