@@ -73,6 +73,8 @@ func main() {
         check(err, "Error encrypting generated zip archive")
 
         os.Remove(zipPath)
+
+        fmt.Println("FILE::" + zipPath + legalCryptFileExtension)
       } else if numFiles == 1 && isRegular == true {
         switch *methodPtr {
         default:
@@ -81,6 +83,7 @@ func main() {
         case "rsa":
           err := encryptRSA(tail[0])
           check(err, "Could not encrypt data, or write encrypted file!")
+          fmt.Println("FILE::" + tail[0] + legalCryptFileExtension)
         }
       } else {
         check(errors.New("WTF?"), "WTF?")

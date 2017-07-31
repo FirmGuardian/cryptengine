@@ -7,7 +7,16 @@ import (
 )
 
 func archiveFiles(paths []string) string {
-  archivePath := "./lcsf_secured_files.zip"
+  cwd, err := os.Getwd()
+  fmt.Println(";;CWD::" + cwd)
+
+  archivePath := ""
+
+  if (err != nil) {
+    archivePath = "./lcsf_secured_files.zip"
+  } else {
+    archivePath = cwd + "/lcsf_secured_files.zip"
+  }
 
   archive := new(archivex.ZipFile)
   archive.Create(archivePath)
