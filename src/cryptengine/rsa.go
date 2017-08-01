@@ -11,6 +11,7 @@ import (
   "golang.org/x/crypto/sha3"
   "bufio"
   "os"
+  "fmt"
 )
 
 func decryptRSA(filePath string) {
@@ -72,6 +73,7 @@ func decryptRSA(filePath string) {
   // END AES DECRYPT
 
   outFilePath, err := getDecryptedFilename(filePath)
+  fmt.Println("FILE::" + outFilePath)
   nixIfExists(outFilePath)
   outFile, err := os.Create(outFilePath)
   check(err, "Unable to create output file")
