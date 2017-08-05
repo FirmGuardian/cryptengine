@@ -29,6 +29,7 @@ func genThoseKeys() {
 }
 
 func main() {
+  scryptPtr  := flag.String("scrypt", "", "Test scrypt functionality")
   decryptPtr := flag.Bool("d", false, "Decrypt the given file")
   encryptPtr := flag.Bool("e", false, "Encrypt the given file")
   keygenPtr  := flag.Bool("gen", false, "Generates a new key pair")
@@ -43,7 +44,10 @@ func main() {
   numFiles := len(tail)
   fmt.Printf(";;Tail Size %d\n", numFiles)
 
-  if *keygenPtr {
+  if *scryptPtr != "" {
+    fmt.Println("This will take a few moments...")
+    fmt.Println(scryptify64(*scryptPtr, 32))
+  } else if *keygenPtr {
     genThoseKeys()
   } else if numFiles > 0 {
     if *decryptPtr {
