@@ -35,7 +35,7 @@ func main() {
   keygenPtr  := flag.Bool("gen", false, "Generates a new key pair")
 
   methodPtr  := flag.String("t", "rsa", "Declares method of encryption/keygen")
-  decryptToken := flag.String("dt", "", "Decrypt token provided by server")
+  decryptToken := flag.String("dt", constPassphrase, "Decrypt token provided by server")
 
   flag.Parse()
 
