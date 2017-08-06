@@ -19,12 +19,15 @@ To blindly update all vendor libraries, use `-all` instead of the name of a libr
 ### Basic Usage
 ```
 cryptengine <options> [file1 file2...]
- -e     Encrypt a file
- -d     Decrypt a file
- -gen   Generate keypair
+ -e      Encrypt a file
+ -d      Decrypt a file
+ -gen    Generate keypair
  
- -t     Type of encryption/keys, defaults to "rsa"
- -dt    Decrypt token; currently does nothing
+ -t      Type of encryption/keys, defaults to "rsa"
+ -dt     Decrypt token; currently does nothing
+ 
+ -scrypt Test the scrypt key derivation function on
+         the supplied string
 ```
 
 ### Generate keypair
@@ -49,6 +52,12 @@ cryptengine -d -t rsa filename
 ```
 
 NOTE: The `-t` flag will be deprecated upon autoselection of correct private key based on public key hash, at which point it will be ignored
+
+### Test Scrypt Pwd-based KDF
+```apple js
+cryptengine -scrypt passphrase
+```
+This will take a few seconds, then output the base64-encoded derived key to the console. This is more PoC, than anything else, but will be written into the libraries used by both front- and back ends.
 
 ## Supported Features
 
