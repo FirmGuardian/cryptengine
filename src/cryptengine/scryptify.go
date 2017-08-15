@@ -52,9 +52,9 @@ import (
   "golang.org/x/crypto/scrypt"
 )
 
-func scryptify(str string, keyLen int) []byte {
-  passwd := []byte(str)
-  salt := []byte("liam@storskegg.org")
+func scryptify(pass string, email string, keyLen int) []byte {
+  passwd := []byte(pass)
+  salt := []byte(email)
   N := 512 * 1024
   r := 19
   p := 2
@@ -64,6 +64,6 @@ func scryptify(str string, keyLen int) []byte {
   return key
 }
 
-func scryptify64(str string, keyLen int) string {
-  return base64.StdEncoding.EncodeToString(scryptify(str, keyLen))
+func scryptify64(pass string, email string, keyLen int) string {
+  return base64.StdEncoding.EncodeToString(scryptify(pass, email, keyLen))
 }

@@ -31,12 +31,12 @@ cryptengine <options> [file1 file2...]
 ```
 
 ### Generate keypair
-```
+```bash
 cryptengine -gen -t rsa
 ```
 
 ### Encrypt a File
-```
+```bash
 cryptengine -e -t rsa file1 file2...
 ```
 
@@ -47,14 +47,14 @@ cryptengine -e -t rsa file1 file2...
 * Reports skipped files, but doesn't fail
 
 ### Decrypt a File
-```
+```bash
 cryptengine -d -t rsa filename
 ```
 
 NOTE: The `-t` flag will be deprecated upon autoselection of correct private key based on public key hash, at which point it will be ignored
 
 ### Test Scrypt Pwd-based KDF
-```apple js
+```bash
 cryptengine -scrypt passphrase
 ```
 This will take a few seconds, then output the base64-encoded derived key to the console. This is more PoC, than anything else, but will be written into the libraries used by both front- and back ends.

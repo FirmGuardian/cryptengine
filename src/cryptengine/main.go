@@ -23,9 +23,9 @@ import (
   "os"
 )
 
-func genThoseKeys() {
+func genThoseKeys(passphrase string, email string) {
   fmt.Println(";;Generating keypair")
-  generateRSA4096(constPassphrase)
+  generateRSA4096(scryptify(passphrase, email, 64))
 }
 
 func main() {
@@ -36,30 +36,42 @@ func main() {
 
   methodPtr  := flag.String("t", "rsa", "Declares method of encryption/keygen")
   decryptToken := flag.String("dt", constPassphrase, "Decrypt token provided by server")
+  passPtr := flag.String("p", constPassphrase, "User passphrase")
+  emailPtr := flag.String("eml", "", "User email")
 
   flag.Parse()
 
   tail := flag.Args()
 
+  fmt.Println(";;Email: " + *emailPtr)
+  fmt.Println(";;Pass: " + *passPtr)
+  fmt.Println(";;Scrypt: " + *scryptPtr)
+
   numFiles := len(tail)
   fmt.Printf(";;Tail Size %d\n", numFiles)
 
   if *scryptPtr != "" {
-    fmt.Println("This will take a few moments...")
-    fmt.Println(scryptify64(*scryptPtr, 32))
-  } else if *keygenPtr {
-    genThoseKeys()
+    fmt.Println(";;This will take a few moments...")
+    fmt.Println(scryptify64(*scryptPtr, "liam@storskegg.org", 64))
+  } else if *keygenPtr && *emailPtr != "" {
+    if numFiles == 0 {
+      genThoseKeys(*passPtr, *emailPtr)
+    }
   } else if numFiles > 0 {
     if *decryptPtr {
-      fmt.Println(";;Decrypting file")
-      switch *methodPtr {
-      default:
-        fmt.Println("ERR::Unknown decryption method")
-        os.Exit(2)
-      case "rsa":
-        fmt.Printf(";;DecryptToken = %s\n", *decryptToken)
+      if *emailPtr != "" {
+        fmt.Println(";;Decrypting file")
+        switch *methodPtr {
+        default:
+          fmt.Println("ERR::Unknown decryption method")
+          os.Exit(2)
+        case "rsa":
+          fmt.Printf(";;DecryptToken = %s\n", *decryptToken)
 
-        decryptRSA(tail[0])
+          decryptRSA(tail[0], *passPtr, *emailPtr)
+        }
+      } else {
+        fmt.Println("ERR::Flag eml is required when decrypting")
       }
     } else if *encryptPtr {
       fmt.Println(";;Encrypting file(s)")

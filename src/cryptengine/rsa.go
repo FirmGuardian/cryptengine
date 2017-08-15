@@ -14,7 +14,7 @@ import (
   "fmt"
 )
 
-func decryptRSA(filePath string) {
+func decryptRSA(filePath string, passPhrase string, email string) {
   fileInfo, _ := os.Stat(filePath)
   fileSize := fileInfo.Size()
 
@@ -49,14 +49,14 @@ func decryptRSA(filePath string) {
   encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
   check(err, "Unable to deserialize encrypted data")
 
-  keySlurp, err :=ioutil.ReadFile("./id_rsa")
+  keySlurp, err := ioutil.ReadFile("./id_rsa")
   check(err, "Unable to read private key, or doesn't exist")
   privateBlock, _ := pem.Decode(keySlurp)
   if privateBlock == nil || privateBlock.Type != "RSA PRIVATE KEY" {
     check(errors.New("Failed to decode PEM block containing private key"), "Failed to decode PEM block containing private key")
   }
 
-  der, err := x509.DecryptPEMBlock(privateBlock, []byte(constPassphrase))
+  der, err := x509.DecryptPEMBlock(privateBlock, scryptify(passPhrase, email, 64))
   check(err, "Unable to decrypt private block")
 
   privatePKCS, err := x509.ParsePKCS1PrivateKey(der)
@@ -135,7 +135,7 @@ func encryptRSA(filePath string) (error) {
   return nil
 }
 
-func generateRSA4096(secret string) {
+func generateRSA4096(secret []byte) {
   privateFilename := "./id_rsa"
   publicFilename  := privateFilename + ".pub"
   if fileExists(privateFilename) && fileExists(publicFilename) {
@@ -163,7 +163,7 @@ func generateRSA4096(secret string) {
   }
 
   // Encrypt the pem
-  private3, err := x509.EncryptPEMBlock(rng, private2.Type, private2.Bytes, []byte(secret), x509.PEMCipherAES256)
+  private3, err := x509.EncryptPEMBlock(rng, private2.Type, private2.Bytes, secret, x509.PEMCipherAES256)
   check(err, "Failed to encrypt PEM private block")
 
   // Resultant private key in PEM format.
