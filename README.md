@@ -17,7 +17,7 @@ To blindly update all vendor libraries, use `-all` instead of the name of a libr
 ## Usage
 
 ### Basic Usage
-```
+```bash
 cryptengine <options> [file1 file2...]
  -e      Encrypt a file
  -d      Decrypt a file
@@ -28,11 +28,14 @@ cryptengine <options> [file1 file2...]
  
  -scrypt Test the scrypt key derivation function on
          the supplied string
+         
+ -p      Password for keygen
+ -eml    Optional: email address, used in keygen
 ```
 
 ### Generate keypair
 ```bash
-cryptengine -gen -t rsa
+cryptengine -gen -t rsa -p <password> -eml <email>
 ```
 
 ### Encrypt a File
@@ -48,7 +51,7 @@ cryptengine -e -t rsa file1 file2...
 
 ### Decrypt a File
 ```bash
-cryptengine -d -t rsa filename
+cryptengine -p <password> -eml <email> -t rsa -d filename
 ```
 
 NOTE: The `-t` flag will be deprecated upon autoselection of correct private key based on public key hash, at which point it will be ignored
@@ -64,3 +67,7 @@ This will take a few seconds, then output the base64-encoded derived key to the 
 ### Encryption Methods
 
 * RSA-4096 + AES-256
+
+### Key Derivation
+
+* Scrypt
