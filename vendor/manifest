@@ -10,21 +10,21 @@
 		{
 			"importpath": "golang.org/x/crypto/pbkdf2",
 			"repository": "https://go.googlesource.com/crypto",
-			"revision": "eb71ad9bd329b5ac0fd0148dd99bd62e8be8e035",
+			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
 			"branch": "master",
 			"path": "/pbkdf2"
 		},
 		{
 			"importpath": "golang.org/x/crypto/scrypt",
 			"repository": "https://go.googlesource.com/crypto",
-			"revision": "eb71ad9bd329b5ac0fd0148dd99bd62e8be8e035",
+			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
 			"branch": "master",
 			"path": "/scrypt"
 		},
 		{
 			"importpath": "golang.org/x/crypto/sha3",
 			"repository": "https://go.googlesource.com/crypto",
-			"revision": "eb71ad9bd329b5ac0fd0148dd99bd62e8be8e035",
+			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
 			"branch": "master",
 			"path": "/sha3"
 		}
