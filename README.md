@@ -2,7 +2,7 @@
 
 ## Building the Project
 
-1) Golang: This version of `cryptengine` uses Go v1.8.3. You can find that [here](https://golang.org/dl/).
+1) Golang: This version of `cryptengine` uses Go v1.9.x. You can find that [here](https://golang.org/dl/).
 2) GB: This project has been scaffolded for GB. You can find that [here](https://getgb.io/docs/install/).
 3) In the root of the project, type `gb build all`.
 
