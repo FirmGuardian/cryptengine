@@ -38,6 +38,8 @@ cryptengine <options> [file1 file2...]
 cryptengine -gen -t rsa -p <password> -eml <email>
 ```
 
+**NOTE:** For reasons yet unknown to me, please keep the arguments in the stated order. *I know, I know.* I have to look into this.
+
 ### Encrypt a File
 ```bash
 cryptengine -e -t rsa file1 file2...
@@ -53,8 +55,9 @@ cryptengine -e -t rsa file1 file2...
 ```bash
 cryptengine -p <password> -eml <email> -t rsa -d filename
 ```
+**NOTE:** For reasons yet unknown to me, please keep the arguments in the stated order. *I know, I know.* I have to look into this.
 
-NOTE: The `-t` flag will be deprecated upon autoselection of correct private key based on public key hash, at which point it will be ignored
+**NOTE:** The `-t` flag will be deprecated upon autoselection of correct private key based on public key hash, at which point it will be ignored
 
 ### Test Scrypt Pwd-based KDF
 ```bash
@@ -68,6 +71,6 @@ This will take a few seconds, then output the base64-encoded derived key to the 
 
 * RSA-4096 + AES-256
 
-### Key Derivation
+### Password-Based Key Derivation
 
 * Scrypt
