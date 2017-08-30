@@ -13,103 +13,118 @@
  * 3) Am I a contributor to a FIPS-certified cryptographic process?
  *
  * "Don't be crafty."
+ *
+ * TODO: Improve os.Exit calls, and associate error messages to error codes
  */
 package main
 
 import (
-  "errors"
+	"errors"
+	"flag"
 	"fmt"
-  "flag"
-  "os"
+	"os"
 )
 
-func genThoseKeys(passphrase string, email string) {
-  fmt.Println(";;Generating keypair")
-  generateRSA4096(scryptify(passphrase, email, 64))
+func generateKeypairs(passphrase string, email string) {
+	fmt.Println(";;Generating keypair")
+	generateRSA4096(scryptify(passphrase, email, 64))
 }
 
 func main() {
-  scryptPtr  := flag.String("scrypt", "", "Test scrypt functionality")
-  decryptPtr := flag.Bool("d", false, "Decrypt the given file")
-  encryptPtr := flag.Bool("e", false, "Encrypt the given file")
-  keygenPtr  := flag.Bool("gen", false, "Generates a new key pair")
+	decryptPtr := flag.Bool("d", false, "Decrypt the given file")
+	encryptPtr := flag.Bool("e", false, "Encrypt the given file")
+	keygenPtr := flag.Bool("gen", false, "Generates a new key pair")
 
-  methodPtr  := flag.String("t", "rsa", "Declares method of encryption/keygen")
-  decryptToken := flag.String("dt", constPassphrase, "Decrypt token provided by server")
-  passPtr := flag.String("p", constPassphrase, "User passphrase")
-  emailPtr := flag.String("eml", "", "User email")
+	methodPtr := flag.String("t", "rsa", "Declares method of encryption/keygen")
+	decryptToken := flag.String("dt", constPassphrase, "Decrypt token provided by server")
+	passPtr := flag.String("p", constPassphrase, "User passphrase")
+	emailPtr := flag.String("eml", "", "User email")
 
-  flag.Parse()
+	flag.Parse()
 
-  tail := flag.Args()
+	tail := flag.Args()
 
-  fmt.Println(";;Email: " + *emailPtr)
-  fmt.Println(";;Pass: " + *passPtr)
-  fmt.Println(";;Scrypt: " + *scryptPtr)
+	fmt.Println(";;Email: " + *emailPtr)
+	fmt.Println(";;Pass: " + *passPtr)
 
-  numFiles := len(tail)
-  fmt.Printf(";;Tail Size %d\n", numFiles)
+	numFiles := len(tail)
+	fmt.Printf(";;Tail Size %d\n", numFiles)
 
-  if *scryptPtr != "" {
-    fmt.Println(";;This will take a few moments...")
-    fmt.Println(scryptify64(*scryptPtr, "liam@storskegg.org", 64))
-  } else if *keygenPtr && *emailPtr != "" {
-    if numFiles == 0 {
-      genThoseKeys(*passPtr, *emailPtr)
-    }
-  } else if numFiles > 0 {
-    if *decryptPtr {
-      if *emailPtr != "" {
-        fmt.Println(";;Decrypting file")
-        switch *methodPtr {
-        default:
-          fmt.Println("ERR::Unknown decryption method")
-          os.Exit(2)
-        case "rsa":
-          fmt.Printf(";;DecryptToken = %s\n", *decryptToken)
+	// Generate Keypair
+	if *keygenPtr {
+		if *emailPtr != "" {
+			generateKeypairs(*passPtr, *emailPtr)
+		} else {
+			fmt.Println("ERR::An email is necessary to generate keypairs.")
+			os.Exit(1000)
+		}
+	} else if numFiles > 0 {
 
-          decryptRSA(tail[0], *passPtr, *emailPtr)
-        }
-      } else {
-        fmt.Println("ERR::Flag eml is required when decrypting")
-      }
-    } else if *encryptPtr {
-      fmt.Println(";;Encrypting file(s)")
+		// Decrypt a file
+		if *decryptPtr {
 
-      // the following is temporary until multiple files/dirs are supported
-      f0info, err := os.Stat(tail[0])
-      check(err, "Something is fucky with " + tail[0])
-      f0mode := f0info.Mode()
-      isRegular := f0mode.IsRegular()
-      isDirectory := f0mode.IsDir()
+			// We need an email to perform decryption
+			if *emailPtr != "" {
+				fmt.Println(";;Decrypting file")
+				switch *methodPtr {
+				default:
+					fmt.Println("ERR::Unknown decryption method")
+					os.Exit(1000)
+				case "rsa":
+					fmt.Printf(";;DecryptToken = %s\n", *decryptToken)
 
-      if numFiles > 1 || (numFiles == 1 && isDirectory) {
-        zipPath := archiveFiles(tail)
-        err := encryptRSA(zipPath)
-        check(err, "Error encrypting generated zip archive")
+					decryptRSA(tail[0], *passPtr, *emailPtr)
+				}
+			} else {
+				fmt.Println("ERR::Flag eml is required when decrypting")
+				os.Exit(1000)
+			}
 
-        os.Remove(zipPath)
+			// Encrypt shit
+		} else if *encryptPtr {
+			fmt.Println(";;Encrypting file(s)")
 
-        fmt.Println("FILE::" + zipPath + legalCryptFileExtension)
-      } else if numFiles == 1 && isRegular == true {
-        switch *methodPtr {
-        default:
-          fmt.Println("ERR::Unknown encryption method")
-          os.Exit(2)
-        case "rsa":
-          err := encryptRSA(tail[0])
-          check(err, "Could not encrypt data, or write encrypted file!")
-          fmt.Println("FILE::" + tail[0] + legalCryptFileExtension)
-        }
-      } else {
-        check(errors.New("WTF?"), "WTF?")
-      }
-    }
-  } else {
-    fmt.Println("ERR::Usage: cryptengine [options] file1 (file2 file3...)")
-    flag.PrintDefaults()
-    os.Exit(1)
-  }
+			// File checks on the first file to be encrypted
+			f0info, err := os.Stat(tail[0])
+			check(err, "Unable to access file "+tail[0])
+			f0mode := f0info.Mode()
+			f0isRegular := f0mode.IsRegular()
+			f0isDirectory := f0mode.IsDir()
+
+			// Multiple files, or a directory
+			if numFiles > 1 || (numFiles == 1 && f0isDirectory) {
+				zipPath := archiveFiles(tail)
+				err := encryptRSA(zipPath)
+				check(err, "Error encrypting generated zip archive")
+
+				os.Remove(zipPath)
+
+				fmt.Println("FILE::" + zipPath + legalCryptFileExtension)
+
+				// Just one file, and it's normal (e.g. not /dev/null)
+			} else if numFiles == 1 && f0isRegular == true {
+				switch *methodPtr {
+				default:
+					fmt.Println("ERR::Unknown encryption method")
+					os.Exit(1000)
+				case "rsa":
+					err := encryptRSA(tail[0])
+					check(err, "Could not encrypt data, or write encrypted file!")
+					fmt.Println("FILE::" + tail[0] + legalCryptFileExtension)
+				}
+
+				// Something really bizarre has happened
+			} else {
+				check(errors.New("WTF?"), "WTF?")
+			}
+		}
+
+		// Usage Error
+	} else {
+		fmt.Println("ERR::Usage: cryptengine [options] file1 (file2 file3...)")
+		flag.PrintDefaults()
+		os.Exit(1000)
+	}
 
 	// Parsable output <STATUS>
 	fmt.Println("OK")

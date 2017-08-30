@@ -1,51 +1,52 @@
 package main
 
 import (
-  "github.com/jhoonb/archivex"
-  "os"
-  "fmt"
+	"fmt"
+	"github.com/jhoonb/archivex"
+	"os"
 )
 
 func archiveFiles(paths []string) string {
-  cwd, err := os.Getwd()
-  fmt.Println(";;CWD::" + cwd)
+	cwd, err := os.Getwd()
+	fmt.Println(";;CWD::" + cwd)
 
-  archivePath := ""
+	archivePath := ""
 
-  if (err != nil) {
-    archivePath = "./lcsf_secured_files.zip"
-  } else {
-    archivePath = cwd + "/lcsf_secured_files.zip"
-  }
+	if err != nil {
+		archivePath = "./lcsf_secured_files.zip"
+	} else {
+		archivePath = cwd + "/lcsf_secured_files.zip"
+	}
 
-  archive := new(archivex.ZipFile)
-  archive.Create(archivePath)
-  defer archive.Close()
+	archive := new(archivex.ZipFile)
+	archive.Create(archivePath)
+	defer archive.Close()
 
-  var skipped []string
+	// This will hold the paths of any file we skip
+	var skippedFiles []string
 
-  for _, path := range paths {
-    fileInfo, err := os.Stat(path)
-    check(err, "Something's fucky with " + path)
+	for _, path := range paths {
+		fileInfo, err := os.Stat(path)
+		check(err, "Something's fucky with "+path)
 
-    fmode := fileInfo.Mode()
-    isdir := fmode.IsDir()
-    isreg := fmode.IsRegular()
+		fmode := fileInfo.Mode()
+		isDirectory := fmode.IsDir()
+		isRegular := fmode.IsRegular()
 
-    if isreg {
-      archive.AddFile(path)
-      fmt.Printf("ZIP::Adding file %s\n", path)
-    } else if isdir {
-      archive.AddAll(path, false)
-      fmt.Printf("ZIP::Adding directory %s\n", path)
-    } else {
-      skipped = append(skipped, path)
-    }
+		if isRegular {
+			archive.AddFile(path)
+			fmt.Printf("ZIP::Adding file %s\n", path)
+		} else if isDirectory {
+			archive.AddAll(path, false)
+			fmt.Printf("ZIP::Adding directory %s\n", path)
+		} else {
+			skippedFiles = append(skippedFiles, path)
+		}
 
-    for _, spath := range skipped {
-      fmt.Printf("SKIPPED::%s\n", spath)
-    }
-  }
+		for _, spath := range skippedFiles {
+			fmt.Printf("SKIPPED::%s\n", spath)
+		}
+	}
 
-  return archivePath
+	return archivePath
 }
