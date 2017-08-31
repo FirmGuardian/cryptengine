@@ -115,7 +115,7 @@ func main() {
 
 				// Something really bizarre has happened
 			} else {
-				check(errors.New("WTF?"), "WTF?")
+				check(errors.New("Something has gone horribly wrong."), "Something has gone horribly wrong.")
 			}
 		}
 
