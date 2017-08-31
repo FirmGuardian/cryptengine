@@ -19,6 +19,11 @@ const (
 	maxInputFileSize        uint64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 )
 
+type ErrType struct {
+	Code uint8
+	Msg  string
+}
+
 // We use this to fail hard, which is a good thing
 func check(e error, msg string) {
 	if e != nil {
@@ -41,7 +46,7 @@ func generateRandomBytes(numBytes int) ([]byte, error) {
 	b := make([]byte, numBytes)
 	n, err := rand.Read(b)
 	if n != len(b) || err != nil {
-		return nil, fmt.Errorf("Unable to successfully read from the system CSPRNG (%v)", err)
+		return nil, fmt.Errorf("ERR::Unable to successfully read from the system CSPRNG (%v)", err)
 	}
 
 	return b, nil
