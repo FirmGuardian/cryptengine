@@ -122,6 +122,8 @@ func main() {
 		// Usage Error
 	} else {
 		fmt.Println("ERR::Usage: cryptengine [options] file1 (file2 file3...)")
+
+		// TODO: Remove this soon. We won't want to display usage on the cli
 		flag.PrintDefaults()
 		os.Exit(1000)
 	}

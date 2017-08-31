@@ -17,6 +17,7 @@ To blindly update all vendor libraries, use `-all` instead of the name of a libr
 ## Usage
 
 ### Basic Usage
+Basic usage will be removed from the 
 ```bash
 cryptengine <options> [file1 file2...]
  -e      Encrypt a file
