@@ -26,9 +26,6 @@ cryptengine <options> [file1 file2...]
  -t      Type of encryption/keys, defaults to "rsa"
  -dt     Decrypt token; currently does nothing
  
- -scrypt Test the scrypt key derivation function on
-         the supplied string
-         
  -p      Password for keygen
  -eml    Optional: email address, used in keygen
 ```
