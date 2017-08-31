@@ -64,5 +64,7 @@ func getEncryptedFilename(fname string) string {
 func nixIfExists(filePath string) {
 	if _, err := os.Stat(filePath); err == nil {
 		check(os.Remove(filePath), "Unable to remove existing file")
+	} else {
+		check(err, "Unable to remove "+filePath)
 	}
 }
