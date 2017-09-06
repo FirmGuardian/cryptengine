@@ -19,16 +19,16 @@ func decryptRSA(filePath string, secret string, email string) {
 	fileSize := fileInfo.Size()
 
 	inFile, err := os.Open(filePath)
-	check(err, "Unable to open encrypted file for reading")
+	check(err, errs["fsCantOpenFile"])
 	r := bufio.NewReaderSize(inFile, int(fileSize))
 
 	publicKeyHash64 := make([]byte, 88)
 	_, err = r.Read(publicKeyHash64)
-	check(err, "Error reading publicKeyHash")
+	check(err, errs["keypairCantReadPublicKey"])
 
 	encryptedKey64 := make([]byte, 684)
 	_, err = r.Read(encryptedKey64)
-	check(err, "Error reading encrypted key")
+	check(err, errs["keypairCantReadPrivateKey"])
 	encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
 
 	nonce64 := make([]byte, 16)
@@ -38,45 +38,45 @@ func decryptRSA(filePath string, secret string, email string) {
 	szEncryptedData := uint64(r.Buffered())
 
 	if szEncryptedData > maxInputFileSize+4096 { // pad max filesize by arbitrary 4k to account for our dick meta
-		check(errors.New("Encrypted file is larger than maximum!"), "Encrypted file is larger than maximum!")
+		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
 	}
 
 	encryptedData64 := make([]byte, szEncryptedData) // max encryptable filesize + pad
 	_, err = r.Read(encryptedData64[:cap(encryptedData64)])
 	inFile.Close()
-	check(err, "Error reading encryptedData")
+	check(err, errs["cryptCantReadEncryptedBlock"])
 
 	encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
-	check(err, "Unable to deserialize encrypted data")
+	check(err, errs["cryptCantDeserializeEncryptedData"])
 
 	keySlurp, err := ioutil.ReadFile("./id_rsa")
-	check(err, "Unable to read private key, or doesn't exist")
+	check(err, errs["keypairCantReadPrivateKey"])
 	privateBlock, _ := pem.Decode(keySlurp)
 	if privateBlock == nil || privateBlock.Type != "RSA PRIVATE KEY" {
-		check(errors.New("Failed to decode PEM block containing private key"), "Failed to decode PEM block containing private key")
+		check(errors.New(errs["cryptCantDecodePrivatePEM"].Msg), errs["cryptCantDecodePrivatePEM"])
 	}
 
 	der, err := x509.DecryptPEMBlock(privateBlock, scryptify(secret, email, 64))
-	check(err, "Unable to decrypt private block")
+	check(err, errs["cryptCantDecryptPrivateBlock"])
 
 	privatePKCS, err := x509.ParsePKCS1PrivateKey(der)
-	check(err, "Unable to parse decrypted private key")
+	check(err, errs["cryptCantParsePrivateKey"])
 
 	hash := sha3.New512()
 	rng := rand.Reader
 	sessionKey, err := rsa.DecryptOAEP(hash, rng, privatePKCS, encryptedKey, []byte(""))
-	check(err, "Unable to decrypt cipherkey")
+	check(err, errs["cryptCantDecryptCipher"])
 
 	// BEGIN AES DECRYPT (sessionKey, nonce, encryptedData)
 	decryptedData, err := decryptAES(sessionKey, nonce, encryptedData)
-	check(err, "Unable to decrypt file")
+	check(err, errs["cryptCantDecryptFile"])
 	// END AES DECRYPT
 
 	outFilePath, err := getDecryptedFilename(filePath)
 	fmt.Println("FILE::" + outFilePath)
 	nixIfExists(outFilePath)
 	outFile, err := os.Create(outFilePath)
-	check(err, "Unable to create output file")
+	check(err, errs["fsCantCreateFile"])
 	defer outFile.Close()
 	w := bufio.NewWriter(outFile)
 
@@ -95,14 +95,14 @@ func encryptRSA(filePath string) error {
 
 	// Slurp and parse public key to encrypt AES Session Key
 	keySlurp, err := ioutil.ReadFile("./id_rsa.pub")
-	check(err, "Unable to read public key or doesn't exist")
+	check(err, errs["keypairCantReadPublicKey"])
 	publicBlock, _ := pem.Decode(keySlurp)
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
-		check(errors.New("Failed to decode PEM block containing public key"), "Failed to decode PEM block containing public key")
+		check(errors.New(errs["cryptCantDecodePublicPEM"].Msg), errs["cryptCantDecodePublicPEM"])
 	}
 
 	publicKey, err := x509.ParsePKIXPublicKey(publicBlock.Bytes)
-	check(err, "Unable to parse public key")
+	check(err, errs["cryptCantParsePublicKey"])
 
 	publicKeyHash := sha3.New512()
 	publicKeyHash.Write(publicBlock.Bytes)
@@ -114,7 +114,7 @@ func encryptRSA(filePath string) error {
 
 	// Slurp file to be encrypted
 	fSlurp, err := ioutil.ReadFile(filePath)
-	check(err, "Unable to read file to be secured.")
+	check(err, errs["fsCantOpenFile"])
 
 	// BEGIN AES ENCRYPTION
 	encryptedBin, nonce, sessionKey, err := encryptAES(fSlurp)
@@ -147,10 +147,10 @@ func generateRSA4096(secret []byte) {
 	// private1 *rsa.PrivateKey;
 	// err error;
 	private1, err := rsa.GenerateKey(rng, 4096)
-	check(err, "Failed to generate private key.")
+	check(err, errs["keypairCantGeneratePrivateKey"])
 
 	err = private1.Validate()
-	check(err, "Validation failed.")
+	check(err, errs["keypairCantValidatePrivateKey"])
 
 	privateDer := x509.MarshalPKCS1PrivateKey(private1)
 
@@ -164,7 +164,7 @@ func generateRSA4096(secret []byte) {
 
 	// Encrypt the pem
 	private3, err := x509.EncryptPEMBlock(rng, private2.Type, private2.Bytes, secret, x509.PEMCipherAES256)
-	check(err, "Failed to encrypt PEM private block")
+	check(err, errs["keypairCantEncryptPrivatePEM"])
 
 	// Resultant private key in PEM format.
 	// priv_pem string
@@ -172,7 +172,7 @@ func generateRSA4096(secret []byte) {
 
 	// Public Key generation
 	publicDer, err := x509.MarshalPKIXPublicKey(&private1.PublicKey)
-	check(err, "Failed to get der format for PublicKey.")
+	check(err, errs["keypairCantMarshalPublicKey"])
 
 	public2 := pem.Block{
 		Type:    "PUBLIC KEY",

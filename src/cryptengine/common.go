@@ -12,6 +12,15 @@ import (
 	"strings"
 )
 
+type ErrType struct {
+	Code uint16
+	Msg  string
+}
+
+func (t ErrType) code() int {
+	return int(t.Code)
+}
+
 // Universal constants
 const (
 	constPassphrase         string = ""
@@ -19,16 +28,37 @@ const (
 	maxInputFileSize        uint64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 )
 
-type ErrType struct {
-	Code uint8
-	Msg  string
+var errs = map[string]ErrType{
+	"fsCantOpenFile":                    ErrType{200, "Unable to open encrypted file for reading"},
+	"fsCantCreateFile":                  ErrType{201, "Unable to create file"},
+	"fsCantDeleteFile":                  ErrType{202, "Unable to remove existing file"},
+	"memFileTooBig":                     ErrType{300, "Input file exceeds maximum"},
+	"cryptCantReadEncryptedBlock":       ErrType{400, "Error reading encryptedData"},
+	"cryptCantDeserializeEncryptedData": ErrType{401, "Unable to deserialize encrypted data"},
+	"cryptCantDecodePrivatePEM":         ErrType{401, "Failed to decode PEM block of private key"},
+	"cryptCantDecodePublicPEM":          ErrType{402, "Failed to decode PEM block of public key"},
+	"cryptCantDecryptPrivateBlock":      ErrType{403, "Unable to decrypt private block"},
+	"cryptCantParsePrivateKey":          ErrType{404, "Unable to parse decrypted private key"},
+	"cryptCantParsePublicKey":           ErrType{405, "unable to parse public key"},
+	"cryptCantDecryptCipher":            ErrType{420, "Unable to decrypt cipher"},
+	"cryptCantDecryptFile":              ErrType{421, "Unable to decrypt file"},
+	"keypairCantReadPublicKey":          ErrType{500, "Error reading public key"},
+	"keypairCantReadPrivateKey":         ErrType{501, "Error reading private key"},
+	"keypairCantGeneratePrivateKey":     ErrType{502, "Failed to generate private key"},
+	"keypairCantValidatePrivateKey":     ErrType{503, "Failed to validate private key"},
+	"keypairCantEncryptPrivatePEM":      ErrType{504, "Failed to encrypt private PEM"},
+	"keypairCantMarshalPublicKey":       ErrType{505, "Failed to marshal public key block"},
+	"panicBadErrType":                   ErrType{1000, "Bad ErrType"},
 }
 
 // We use this to fail hard, which is a good thing
-func check(e error, msg string) {
-	if e != nil {
-		fmt.Fprintln(os.Stderr, "ERR::"+msg)
-		panic(e)
+func check(err error, errtype ErrType) {
+	if errtype.Msg == "" {
+		panic(errors.New(errs["panicBadErrType"].Msg))
+	}
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "ERR::"+errtype.Msg)
+		os.Exit(errtype.code())
 	}
 }
 
@@ -68,8 +98,6 @@ func getEncryptedFilename(fname string) string {
 // If the file exists, delete it
 func nixIfExists(filePath string) {
 	if _, err := os.Stat(filePath); err == nil {
-		check(os.Remove(filePath), "Unable to remove existing file")
-	} else {
-		check(err, "Unable to remove "+filePath)
+		check(os.Remove(filePath), errs["fsCantDeleteFile"])
 	}
 }
