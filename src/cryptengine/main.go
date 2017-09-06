@@ -86,7 +86,7 @@ func main() {
 
 			// File checks on the first file to be encrypted
 			f0info, err := os.Stat(tail[0])
-			check(err, "Unable to access file "+tail[0])
+			check(err, errs["fsCantOpenFile"])
 			f0mode := f0info.Mode()
 			f0isRegular := f0mode.IsRegular()
 			f0isDirectory := f0mode.IsDir()
@@ -95,7 +95,7 @@ func main() {
 			if numFiles > 1 || (numFiles == 1 && f0isDirectory) {
 				zipPath := archiveFiles(tail)
 				err := encryptRSA(zipPath)
-				check(err, "Error encrypting generated zip archive")
+				check(err, errs["cryptCantEncryptZip"])
 
 				os.Remove(zipPath)
 
@@ -109,13 +109,13 @@ func main() {
 					os.Exit(1000)
 				case "rsa":
 					err := encryptRSA(tail[0])
-					check(err, "Could not encrypt data, or write encrypted file!")
+					check(err, errs["cryptCantEncryptOrWrite"])
 					fmt.Println("FILE::" + tail[0] + legalCryptFileExtension)
 				}
 
 				// Something really bizarre has happened
 			} else {
-				check(errors.New("Something has gone horribly wrong."), "Something has gone horribly wrong.")
+				check(errors.New(errs["panicWTF"].Msg), errs["panicWTF"])
 			}
 		}
 
