@@ -27,7 +27,7 @@ func archiveFiles(paths []string) string {
 
 	for _, path := range paths {
 		fileInfo, err := os.Stat(path)
-		check(err, "Something's fucky with "+path)
+		check(err, errs["fsCantOpenFile"])
 
 		fmode := fileInfo.Mode()
 		isDirectory := fmode.IsDir()
