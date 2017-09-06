@@ -28,6 +28,7 @@ const (
 	maxInputFileSize        uint64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 )
 
+// Error Definitions, all in one spot
 var errs = map[string]ErrType{
 	"fsCantOpenFile":                    ErrType{200, "Unable to open encrypted file for reading"},
 	"fsCantCreateFile":                  ErrType{201, "Unable to create file"},
@@ -42,13 +43,18 @@ var errs = map[string]ErrType{
 	"cryptCantParsePublicKey":           ErrType{405, "unable to parse public key"},
 	"cryptCantDecryptCipher":            ErrType{420, "Unable to decrypt cipher"},
 	"cryptCantDecryptFile":              ErrType{421, "Unable to decrypt file"},
+	"cryptAESCantCreateCipher":          ErrType{450, "Unable to create AES cipher"},
+	"cryptAESCantCreateGCMBlock":        ErrType{451, "Unable to create GCM Block"},
+	"cryptAESCantDecrypt":               ErrType{452, "Unable to decrypt data"},
+	"cryptAESCantGenerateSessionKey":    ErrType{453, "Unable to generate sessionKey"},
 	"keypairCantReadPublicKey":          ErrType{500, "Error reading public key"},
 	"keypairCantReadPrivateKey":         ErrType{501, "Error reading private key"},
 	"keypairCantGeneratePrivateKey":     ErrType{502, "Failed to generate private key"},
 	"keypairCantValidatePrivateKey":     ErrType{503, "Failed to validate private key"},
 	"keypairCantEncryptPrivatePEM":      ErrType{504, "Failed to encrypt private PEM"},
 	"keypairCantMarshalPublicKey":       ErrType{505, "Failed to marshal public key block"},
-	"panicBadErrType":                   ErrType{1000, "Bad ErrType"},
+
+	"panicBadErrType": ErrType{1000, "Bad ErrType"},
 }
 
 // We use this to fail hard, which is a good thing
