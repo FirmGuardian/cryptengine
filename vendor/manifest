@@ -64,35 +64,35 @@
 		{
 			"importpath": "golang.org/x/crypto/pbkdf2",
 			"repository": "https://go.googlesource.com/crypto",
-			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
+			"revision": "faadfbdc035307d901e69eea569f5dda451a3ee3",
 			"branch": "master",
 			"path": "/pbkdf2"
 		},
 		{
 			"importpath": "golang.org/x/crypto/scrypt",
 			"repository": "https://go.googlesource.com/crypto",
-			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
+			"revision": "faadfbdc035307d901e69eea569f5dda451a3ee3",
 			"branch": "master",
 			"path": "/scrypt"
 		},
 		{
 			"importpath": "golang.org/x/crypto/sha3",
 			"repository": "https://go.googlesource.com/crypto",
-			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
+			"revision": "faadfbdc035307d901e69eea569f5dda451a3ee3",
 			"branch": "master",
 			"path": "/sha3"
 		},
 		{
 			"importpath": "golang.org/x/crypto/ssh/terminal",
 			"repository": "https://go.googlesource.com/crypto",
-			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
+			"revision": "faadfbdc035307d901e69eea569f5dda451a3ee3",
 			"branch": "master",
 			"path": "/ssh/terminal"
 		},
 		{
 			"importpath": "golang.org/x/sys/unix",
 			"repository": "https://go.googlesource.com/sys",
-			"revision": "9aade4d3a3b7e6d876cd3823ad20ec45fc035402",
+			"revision": "062cd7e4e68206d8bab9b18396626e855c992658",
 			"branch": "master",
 			"path": "/unix"
 		},
