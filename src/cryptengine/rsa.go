@@ -18,29 +18,35 @@ func decryptRSA(filePath string, secret string, email string) {
 	fileInfo, _ := os.Stat(filePath)
 	fileSize := fileInfo.Size()
 
+	// 1) Open the file
 	inFile, err := os.Open(filePath)
 	check(err, errs["fsCantOpenFile"])
 	r := bufio.NewReaderSize(inFile, int(fileSize))
 
+	// 2) Read the first 88 bytes: b64-encoded public key hash
 	publicKeyHash64 := make([]byte, 88)
 	_, err = r.Read(publicKeyHash64)
 	check(err, errs["keypairCantReadPublicKey"])
 
+	// 3) Read the next 684 bytes: b64-encoded encrypted aes key
 	encryptedKey64 := make([]byte, 684)
 	_, err = r.Read(encryptedKey64)
 	check(err, errs["keypairCantReadPrivateKey"])
 	encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
 
+	// 4) Read the next 16 bytes: b64-encoded nonce/iv
 	nonce64 := make([]byte, 16)
 	_, err = r.Read(nonce64)
 	nonce, _ := base64.StdEncoding.DecodeString(string(nonce64))
 
+	// 5) Check the number of bytes remaining to be read
 	szEncryptedData := uint64(r.Buffered())
 
 	if szEncryptedData > maxInputFileSize+4096 { // pad max filesize by arbitrary 4k to account for our dick meta
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
 	}
 
+	// 6) Read the rest of the file at once: this is our encrypted data
 	encryptedData64 := make([]byte, szEncryptedData) // max encryptable filesize + pad
 	_, err = r.Read(encryptedData64[:cap(encryptedData64)])
 	inFile.Close()
