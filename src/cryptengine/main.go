@@ -22,7 +22,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
+	"runtime/pprof"
 )
 
 func generateKeypairs(passphrase string, email string) {
@@ -31,6 +33,8 @@ func generateKeypairs(passphrase string, email string) {
 }
 
 func main() {
+	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
+
 	decryptPtr := flag.Bool("d", false, "Decrypt the given file")
 	encryptPtr := flag.Bool("e", false, "Encrypt the given file")
 	keygenPtr := flag.Bool("gen", false, "Generates a new key pair")
@@ -43,6 +47,16 @@ func main() {
 	flag.Parse()
 
 	tail := flag.Args()
+
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		//defer pprof.StopCPUProfile()
+		defer pprof.StopCPUProfile()
+	}
 
 	fmt.Println(";;Email: " + *emailPtr)
 	fmt.Println(";;Pass: " + *passPtr)

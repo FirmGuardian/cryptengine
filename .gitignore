@@ -7,8 +7,10 @@ Thumbs.db
 
 /bin
 /pkg
+/test
 
 id_rsa
 id_rsa.pub
 
 godobin*
+
