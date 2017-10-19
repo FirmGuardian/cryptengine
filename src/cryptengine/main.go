@@ -24,8 +24,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"runtime/pprof"
-  "runtime"
 )
 
 func generateKeypairs(passphrase string, email string) {
@@ -34,6 +34,7 @@ func generateKeypairs(passphrase string, email string) {
 }
 
 func main() {
+	// TODO: Remove these at some point
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 	memprofile := flag.String("memprofile", "", "write memory profile to file")
 
@@ -50,6 +51,7 @@ func main() {
 
 	tail := flag.Args()
 
+	// TODO: Remove this, at some point
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
@@ -147,6 +149,7 @@ func main() {
 	// Parsable output <STATUS>
 	fmt.Println("OK")
 
+	// TODO: remove this, at some point.
 	if *memprofile != "" {
 		f, err := os.Create(*memprofile)
 		if err != nil {
