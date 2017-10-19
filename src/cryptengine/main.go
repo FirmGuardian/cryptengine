@@ -25,6 +25,7 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+  "runtime"
 )
 
 func generateKeypairs(passphrase string, email string) {
@@ -34,6 +35,7 @@ func generateKeypairs(passphrase string, email string) {
 
 func main() {
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
+	memprofile := flag.String("memprofile", "", "write memory profile to file")
 
 	decryptPtr := flag.Bool("d", false, "Decrypt the given file")
 	encryptPtr := flag.Bool("e", false, "Encrypt the given file")
@@ -144,4 +146,15 @@ func main() {
 
 	// Parsable output <STATUS>
 	fmt.Println("OK")
+
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		runtime.GC()
+		pprof.WriteHeapProfile(f)
+		f.Close()
+		return
+	}
 }
