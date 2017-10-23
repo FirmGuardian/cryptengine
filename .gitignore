@@ -7,6 +7,9 @@ Thumbs.db
 
 /bin
 /pkg
+/test
+!/test/README.txt
+!/test/integrationTest.bash
 
 id_rsa
 id_rsa.pub
