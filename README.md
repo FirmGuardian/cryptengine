@@ -9,6 +9,8 @@
 
 ## Updating Vendor Libraries
 
+Vendor libraries should not have to be updated.  However if you need to do so for some reason, here's how to do it:
+
 In the project root, type `gb vendor update <library_name>`.
 
 To blindly update all vendor libraries, use `-all` instead of the name of a library.
