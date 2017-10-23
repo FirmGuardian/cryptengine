@@ -145,48 +145,47 @@ func generateRSA4096(secret []byte) {
 	privateFilename := "./id_rsa"
 	publicFilename := privateFilename + ".pub"
 	if fileExists(privateFilename) && fileExists(publicFilename) {
-		return
+		return // don't regenerate key, for safety sake
 	}
-
-	rng := rand.Reader
 
 	// private1 *rsa.PrivateKey;
 	// err error;
-	private1, err := rsa.GenerateKey(rng, 4096)
+	cipherKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	check(err, errs["keypairCantGeneratePrivateKey"])
 
-	err = private1.Validate()
-	check(err, errs["keypairCantValidatePrivateKey"])
+	check(cipherKey.Validate(), errs["keypairCantValidatePrivateKey"])
 
-	privateDer := x509.MarshalPKCS1PrivateKey(private1)
+	_ = ioutil.WriteFile(privateFilename, derivePrivatePem(cipherKey, secret), 0400)
+	_ = ioutil.WriteFile(publicFilename, derivePublicPem(cipherKey), 0644)
+}
 
+func derivePrivatePem(cipherKey *rsa.PrivateKey, secret []byte) []byte {
 	// pem.Block
 	// blk pem.Block
-	private2 := pem.Block{
+	privateBlock := pem.Block{
 		Type:    "RSA PRIVATE KEY",
 		Headers: nil,
-		Bytes:   privateDer,
+		Bytes:   x509.MarshalPKCS1PrivateKey(cipherKey),
 	}
 
 	// Encrypt the pem
-	private3, err := x509.EncryptPEMBlock(rng, private2.Type, private2.Bytes, secret, x509.PEMCipherAES256)
+	priv509, err := x509.EncryptPEMBlock(rand.Reader, privateBlock.Type, privateBlock.Bytes, secret, x509.PEMCipherAES256)
 	check(err, errs["keypairCantEncryptPrivatePEM"])
 
 	// Resultant private key in PEM format.
 	// priv_pem string
-	privatePem := pem.EncodeToMemory(private3)
+	return pem.EncodeToMemory(priv509) // []byte
+}
 
+func derivePublicPem(cipherKey *rsa.PrivateKey) []byte {
 	// Public Key generation
-	publicDer, err := x509.MarshalPKIXPublicKey(&private1.PublicKey)
+	publicDer, err := x509.MarshalPKIXPublicKey(&cipherKey.PublicKey)
 	check(err, errs["keypairCantMarshalPublicKey"])
 
-	public2 := pem.Block{
+	publicBlock := pem.Block{
 		Type:    "PUBLIC KEY",
 		Headers: nil,
 		Bytes:   publicDer,
 	}
-	publicPem := pem.EncodeToMemory(&public2)
-
-	_ = ioutil.WriteFile(privateFilename, privatePem, 0400)
-	_ = ioutil.WriteFile(publicFilename, publicPem, 0644)
+	return pem.EncodeToMemory(&publicBlock)
 }
