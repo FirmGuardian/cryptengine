@@ -8,8 +8,10 @@ Thumbs.db
 /bin
 /pkg
 /test
+
 !/test/README.txt
-!/test/integrationTest.bash
+!/test/integrationTest.sh
+!/test/randos
 
 id_rsa
 id_rsa.pub
