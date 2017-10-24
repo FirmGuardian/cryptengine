@@ -16,9 +16,11 @@ import (
 func tasks(p *do.Project) {
 	do.Env = `GOPATH=.vendor::$GOPATH`
 
-	p.Task("default", do.S{"buildall"}, nil)
+	p.Task("default", do.S{"build"}, nil)
 
 	// Buildy bits
+	p.Task("build", do.S{"clean", "buildall"}, nil)
+
 	p.Task("buildall", do.P{"build_darwin", "build_windows"}, nil)
 
 	p.Task("build_windows", do.P{"build_win32", "build_win64"}, nil)
@@ -38,6 +40,11 @@ func tasks(p *do.Project) {
 	// Vendor Updates
 	p.Task("blind_update", nil, func(c *do.Context) {
 		c.Run("gb vendor update --all")
+	})
+
+	// Bin and pkg dir cleanup (think `make clean`)
+	p.Task("clean", nil, func(c *do.Context) {
+		c.Run("rm -Rf pkg/* && rm -f bin/*")
 	})
 }
 
