@@ -9,6 +9,8 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/FirmGuardian/legalcrypt-protos/messages"
+	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
 	"os"
@@ -97,6 +99,7 @@ func encryptRSA(filePath string) error {
 	// Create output file, and Writer
 	outFile, err := os.Create(outFilePath)
 	defer outFile.Close()
+
 	w := bufio.NewWriter(outFile)
 
 	// Slurp and parse public key to encrypt AES Session Key
@@ -110,10 +113,12 @@ func encryptRSA(filePath string) error {
 	publicKey, err := x509.ParsePKIXPublicKey(publicBlock.Bytes)
 	check(err, errs["cryptCantParsePublicKey"])
 
+	// This supports multiple recipient hashes. we're still rolling with one, for now.
 	publicKeyHash := sha3.New512()
 	publicKeyHash.Write(publicBlock.Bytes)
 
-	w.WriteString(base64.StdEncoding.EncodeToString(publicKeyHash.Sum(nil)))
+	publicKeyHashes := make([][]byte, 1)
+	publicKeyHashes[0] = publicKeyHash.Sum(nil)
 
 	hash := sha3.New512()
 	rng := rand.Reader
@@ -125,17 +130,20 @@ func encryptRSA(filePath string) error {
 	// BEGIN AES ENCRYPTION
 	encryptedBin, nonce, sessionKey, err := encryptAES(fSlurp)
 
+	// CipherKey
 	encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
-	encryptedSessionKey64 := base64.StdEncoding.EncodeToString(encryptedSessionKey)
 
-	w.Write([]byte(encryptedSessionKey64))
+	encryptedFileProto := &messages.EncryptedFile{
+		Mtype:           messages.MType_LCSF, // It's all LCSF, atm. this should be passed in from main
+		RecipientHashes: publicKeyHashes,
+		CipherKey:       encryptedSessionKey,
+		CipherNonce:     nonce,
+		EncryptedData:   encryptedBin,
+	}
 
-	nonce64 := base64.StdEncoding.EncodeToString(nonce)
-	w.Write([]byte(nonce64))
+	encryptedFile, err := proto.Marshal(encryptedFileProto)
 
-	encrypted64 := base64.StdEncoding.EncodeToString(encryptedBin)
-	w.Write([]byte(encrypted64))
-
+	w.Write(encryptedFile)
 	w.Flush()
 
 	return nil
