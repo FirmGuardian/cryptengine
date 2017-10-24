@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -24,38 +23,56 @@ func decryptRSA(filePath string, secret string, email string) {
 	inFile, err := os.Open(filePath)
 	check(err, errs["fsCantOpenFile"])
 	r := bufio.NewReaderSize(inFile, int(fileSize))
+	buf := make([]byte, int(fileSize))
+	_, err = r.Read(buf)
+	inFile.Close()
+
+	decryptFile := &messages.EncryptedFile{}
+	proto.Unmarshal(buf, decryptFile)
+
+	// 2) Read the recipient hashes
+	_ = decryptFile.GetRecipientHashes()
+
+	// 3) Read the encrypted aes key
+	encryptedKey := decryptFile.GetCipherKey()
+
+	// 4) Read nonce
+	nonce := decryptFile.GetCipherNonce()
+
+	// 5) Read encrypted data
+	encryptedData := decryptFile.GetEncryptedData()
 
 	// 2) Read the first 88 bytes: b64-encoded public key hash
-	publicKeyHash64 := make([]byte, 88)
-	_, err = r.Read(publicKeyHash64)
-	check(err, errs["keypairCantReadPublicKey"])
+	//BUTTpublicKeyHash64 := make([]byte, 88)
+	//_, err = r.Read(publicKeyHash64)
+	//check(err, errs["keypairCantReadPublicKey"])
 
 	// 3) Read the next 684 bytes: b64-encoded encrypted aes key
-	encryptedKey64 := make([]byte, 684)
-	_, err = r.Read(encryptedKey64)
-	check(err, errs["keypairCantReadPrivateKey"])
-	encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
+	//encryptedKey64 := make([]byte, 684)
+	//_, err = r.Read(encryptedKey64)
+	//check(err, errs["keypairCantReadPrivateKey"])
+	//encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
 
 	// 4) Read the next 16 bytes: b64-encoded nonce/iv
-	nonce64 := make([]byte, 16)
-	_, err = r.Read(nonce64)
-	nonce, _ := base64.StdEncoding.DecodeString(string(nonce64))
+	//nonce64 := make([]byte, 16)
+	//_, err = r.Read(nonce64)
+	//nonce, _ := base64.StdEncoding.DecodeString(string(nonce64))
 
-	// 5) Check the number of bytes remaining to be read
-	szEncryptedData := uint64(r.Buffered())
+	// 5) Check the nu  mber of bytes remaining to be read
+	//szEncryptedData := uint64(r.Buffered())
 
-	if szEncryptedData > maxInputFileSize+4096 { // pad max filesize by arbitrary 4k to account for our dick meta
-		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
-	}
+	//if szEncryptedData > maxInputFileSize+4096 { // pad max filesize by arbitrary 4k to account for our dick meta
+	//	check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
+	//}
 
 	// 6) Read the rest of the file at once: this is our encrypted data
-	encryptedData64 := make([]byte, szEncryptedData) // max encryptable filesize + pad
-	_, err = r.Read(encryptedData64[:cap(encryptedData64)])
-	inFile.Close()
-	check(err, errs["cryptCantReadEncryptedBlock"])
+	//encryptedData64 := make([]byte, szEncryptedData) // max encryptable filesize + pad
+	//_, err = r.Read(encryptedData64[:cap(encryptedData64)])
+	//inFile.Close()
+	//check(err, errs["cryptCantReadEncryptedBlock"])
 
-	encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
-	check(err, errs["cryptCantDeserializeEncryptedData"])
+	//encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
+	//check(err, errs["cryptCantDeserializeEncryptedData"])
 
 	keySlurp, err := ioutil.ReadFile("./id_rsa")
 	check(err, errs["keypairCantReadPrivateKey"])
@@ -71,8 +88,7 @@ func decryptRSA(filePath string, secret string, email string) {
 	check(err, errs["cryptCantParsePrivateKey"])
 
 	hash := sha3.New512()
-	rng := rand.Reader
-	sessionKey, err := rsa.DecryptOAEP(hash, rng, privatePKCS, encryptedKey, []byte(""))
+	sessionKey, err := rsa.DecryptOAEP(hash, rand.Reader, privatePKCS, encryptedKey, []byte(""))
 	check(err, errs["cryptCantDecryptCipher"])
 
 	// BEGIN AES DECRYPT (sessionKey, nonce, encryptedData)
@@ -93,6 +109,12 @@ func decryptRSA(filePath string, secret string, email string) {
 }
 
 func encryptRSA(filePath string) error {
+	fileInfo, _ := os.Stat(filePath)
+	fileSize := fileInfo.Size()
+	if fileSize > maxInputFileSize {
+		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
+	}
+
 	outFilePath := getEncryptedFilename(filePath)
 	nixIfExists(outFilePath)
 

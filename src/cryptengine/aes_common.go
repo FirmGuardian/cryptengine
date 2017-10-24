@@ -15,7 +15,7 @@ func decryptAES(key []byte, nonce []byte, encryptedData []byte) ([]byte, error) 
 	check(err, errs["cryptAESCantCreateGCMBlock"])
 
 	decryptedData, err := aesgcm.Open(nil, nonce, encryptedData, nil)
-	check(err, errs["cryptoAESCantDecrypt"])
+	check(err, errs["cryptAESCantDecrypt"])
 
 	return decryptedData, err
 }
