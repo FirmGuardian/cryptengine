@@ -2,10 +2,23 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "github.com/FirmGuardian/legalcrypt-protos",
+			"repository": "https://github.com/FirmGuardian/legalcrypt-protos",
+			"revision": "47045c6fdb04986442cc005e0fc0fa78f1caee43",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/MichaelTJones/walk",
 			"repository": "https://github.com/MichaelTJones/walk",
 			"revision": "4748e29d5718c2df4028a6543edf86fd8cc0f881",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/golang/protobuf/proto",
+			"repository": "https://github.com/golang/protobuf",
+			"revision": "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9",
+			"branch": "master",
+			"path": "/proto"
 		},
 		{
 			"importpath": "github.com/howeyc/gopass",

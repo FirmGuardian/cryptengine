@@ -5,10 +5,11 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/FirmGuardian/legalcrypt-protos/messages"
+	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
 	"os"
@@ -22,38 +23,56 @@ func decryptRSA(filePath string, secret string, email string) {
 	inFile, err := os.Open(filePath)
 	check(err, errs["fsCantOpenFile"])
 	r := bufio.NewReaderSize(inFile, int(fileSize))
+	buf := make([]byte, int(fileSize))
+	_, err = r.Read(buf)
+	inFile.Close()
+
+	decryptFile := &messages.EncryptedFile{}
+	proto.Unmarshal(buf, decryptFile)
+
+	// 2) Read the recipient hashes
+	_ = decryptFile.GetRecipientHashes()
+
+	// 3) Read the encrypted aes key
+	encryptedKey := decryptFile.GetCipherKey()
+
+	// 4) Read nonce
+	nonce := decryptFile.GetCipherNonce()
+
+	// 5) Read encrypted data
+	encryptedData := decryptFile.GetEncryptedData()
 
 	// 2) Read the first 88 bytes: b64-encoded public key hash
-	publicKeyHash64 := make([]byte, 88)
-	_, err = r.Read(publicKeyHash64)
-	check(err, errs["keypairCantReadPublicKey"])
+	//BUTTpublicKeyHash64 := make([]byte, 88)
+	//_, err = r.Read(publicKeyHash64)
+	//check(err, errs["keypairCantReadPublicKey"])
 
 	// 3) Read the next 684 bytes: b64-encoded encrypted aes key
-	encryptedKey64 := make([]byte, 684)
-	_, err = r.Read(encryptedKey64)
-	check(err, errs["keypairCantReadPrivateKey"])
-	encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
+	//encryptedKey64 := make([]byte, 684)
+	//_, err = r.Read(encryptedKey64)
+	//check(err, errs["keypairCantReadPrivateKey"])
+	//encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
 
 	// 4) Read the next 16 bytes: b64-encoded nonce/iv
-	nonce64 := make([]byte, 16)
-	_, err = r.Read(nonce64)
-	nonce, _ := base64.StdEncoding.DecodeString(string(nonce64))
+	//nonce64 := make([]byte, 16)
+	//_, err = r.Read(nonce64)
+	//nonce, _ := base64.StdEncoding.DecodeString(string(nonce64))
 
-	// 5) Check the number of bytes remaining to be read
-	szEncryptedData := uint64(r.Buffered())
+	// 5) Check the nu  mber of bytes remaining to be read
+	//szEncryptedData := uint64(r.Buffered())
 
-	if szEncryptedData > maxInputFileSize+4096 { // pad max filesize by arbitrary 4k to account for our dick meta
-		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
-	}
+	//if szEncryptedData > maxInputFileSize+4096 { // pad max filesize by arbitrary 4k to account for our dick meta
+	//	check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
+	//}
 
 	// 6) Read the rest of the file at once: this is our encrypted data
-	encryptedData64 := make([]byte, szEncryptedData) // max encryptable filesize + pad
-	_, err = r.Read(encryptedData64[:cap(encryptedData64)])
-	inFile.Close()
-	check(err, errs["cryptCantReadEncryptedBlock"])
+	//encryptedData64 := make([]byte, szEncryptedData) // max encryptable filesize + pad
+	//_, err = r.Read(encryptedData64[:cap(encryptedData64)])
+	//inFile.Close()
+	//check(err, errs["cryptCantReadEncryptedBlock"])
 
-	encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
-	check(err, errs["cryptCantDeserializeEncryptedData"])
+	//encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
+	//check(err, errs["cryptCantDeserializeEncryptedData"])
 
 	keySlurp, err := ioutil.ReadFile("./id_rsa")
 	check(err, errs["keypairCantReadPrivateKey"])
@@ -69,8 +88,7 @@ func decryptRSA(filePath string, secret string, email string) {
 	check(err, errs["cryptCantParsePrivateKey"])
 
 	hash := sha3.New512()
-	rng := rand.Reader
-	sessionKey, err := rsa.DecryptOAEP(hash, rng, privatePKCS, encryptedKey, []byte(""))
+	sessionKey, err := rsa.DecryptOAEP(hash, rand.Reader, privatePKCS, encryptedKey, []byte(""))
 	check(err, errs["cryptCantDecryptCipher"])
 
 	// BEGIN AES DECRYPT (sessionKey, nonce, encryptedData)
@@ -91,12 +109,19 @@ func decryptRSA(filePath string, secret string, email string) {
 }
 
 func encryptRSA(filePath string) error {
+	fileInfo, _ := os.Stat(filePath)
+	fileSize := fileInfo.Size()
+	if fileSize > maxInputFileSize {
+		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
+	}
+
 	outFilePath := getEncryptedFilename(filePath)
 	nixIfExists(outFilePath)
 
 	// Create output file, and Writer
 	outFile, err := os.Create(outFilePath)
 	defer outFile.Close()
+
 	w := bufio.NewWriter(outFile)
 
 	// Slurp and parse public key to encrypt AES Session Key
@@ -110,10 +135,12 @@ func encryptRSA(filePath string) error {
 	publicKey, err := x509.ParsePKIXPublicKey(publicBlock.Bytes)
 	check(err, errs["cryptCantParsePublicKey"])
 
+	// This supports multiple recipient hashes. we're still rolling with one, for now.
 	publicKeyHash := sha3.New512()
 	publicKeyHash.Write(publicBlock.Bytes)
 
-	w.WriteString(base64.StdEncoding.EncodeToString(publicKeyHash.Sum(nil)))
+	publicKeyHashes := make([][]byte, 1)
+	publicKeyHashes[0] = publicKeyHash.Sum(nil)
 
 	hash := sha3.New512()
 	rng := rand.Reader
@@ -125,17 +152,20 @@ func encryptRSA(filePath string) error {
 	// BEGIN AES ENCRYPTION
 	encryptedBin, nonce, sessionKey, err := encryptAES(fSlurp)
 
+	// CipherKey
 	encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
-	encryptedSessionKey64 := base64.StdEncoding.EncodeToString(encryptedSessionKey)
 
-	w.Write([]byte(encryptedSessionKey64))
+	encryptedFileProto := &messages.EncryptedFile{
+		Mtype:           messages.MType_LCSF, // It's all LCSF, atm. this should be passed in from main
+		RecipientHashes: publicKeyHashes,
+		CipherKey:       encryptedSessionKey,
+		CipherNonce:     nonce,
+		EncryptedData:   encryptedBin,
+	}
 
-	nonce64 := base64.StdEncoding.EncodeToString(nonce)
-	w.Write([]byte(nonce64))
+	encryptedFile, err := proto.Marshal(encryptedFileProto)
 
-	encrypted64 := base64.StdEncoding.EncodeToString(encryptedBin)
-	w.Write([]byte(encrypted64))
-
+	w.Write(encryptedFile)
 	w.Flush()
 
 	return nil
@@ -145,48 +175,47 @@ func generateRSA4096(secret []byte) {
 	privateFilename := "./id_rsa"
 	publicFilename := privateFilename + ".pub"
 	if fileExists(privateFilename) && fileExists(publicFilename) {
-		return
+		return // don't regenerate key, for safety sake
 	}
-
-	rng := rand.Reader
 
 	// private1 *rsa.PrivateKey;
 	// err error;
-	private1, err := rsa.GenerateKey(rng, 4096)
+	cipherKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	check(err, errs["keypairCantGeneratePrivateKey"])
 
-	err = private1.Validate()
-	check(err, errs["keypairCantValidatePrivateKey"])
+	check(cipherKey.Validate(), errs["keypairCantValidatePrivateKey"])
 
-	privateDer := x509.MarshalPKCS1PrivateKey(private1)
+	_ = ioutil.WriteFile(privateFilename, derivePrivatePem(cipherKey, secret), 0400)
+	_ = ioutil.WriteFile(publicFilename, derivePublicPem(cipherKey), 0644)
+}
 
+func derivePrivatePem(cipherKey *rsa.PrivateKey, secret []byte) []byte {
 	// pem.Block
 	// blk pem.Block
-	private2 := pem.Block{
+	privateBlock := pem.Block{
 		Type:    "RSA PRIVATE KEY",
 		Headers: nil,
-		Bytes:   privateDer,
+		Bytes:   x509.MarshalPKCS1PrivateKey(cipherKey),
 	}
 
 	// Encrypt the pem
-	private3, err := x509.EncryptPEMBlock(rng, private2.Type, private2.Bytes, secret, x509.PEMCipherAES256)
+	priv509, err := x509.EncryptPEMBlock(rand.Reader, privateBlock.Type, privateBlock.Bytes, secret, x509.PEMCipherAES256)
 	check(err, errs["keypairCantEncryptPrivatePEM"])
 
 	// Resultant private key in PEM format.
 	// priv_pem string
-	privatePem := pem.EncodeToMemory(private3)
+	return pem.EncodeToMemory(priv509) // []byte
+}
 
+func derivePublicPem(cipherKey *rsa.PrivateKey) []byte {
 	// Public Key generation
-	publicDer, err := x509.MarshalPKIXPublicKey(&private1.PublicKey)
+	publicDer, err := x509.MarshalPKIXPublicKey(&cipherKey.PublicKey)
 	check(err, errs["keypairCantMarshalPublicKey"])
 
-	public2 := pem.Block{
+	publicBlock := pem.Block{
 		Type:    "PUBLIC KEY",
 		Headers: nil,
 		Bytes:   publicDer,
 	}
-	publicPem := pem.EncodeToMemory(&public2)
-
-	_ = ioutil.WriteFile(privateFilename, privatePem, 0400)
-	_ = ioutil.WriteFile(publicFilename, publicPem, 0644)
+	return pem.EncodeToMemory(&publicBlock)
 }

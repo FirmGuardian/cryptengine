@@ -25,7 +25,7 @@ func (t ErrType) code() int {
 const (
 	constPassphrase         string = ""
 	legalCryptFileExtension string = ".lcsf"
-	maxInputFileSize        uint64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
+	maxInputFileSize        int64  = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 )
 
 // Error Definitions, all in one spot
@@ -62,6 +62,7 @@ var errs = map[string]ErrType{
 // We use this to fail hard, which is a good thing
 func check(err error, errtype ErrType) {
 	if errtype.Msg == "" {
+		fmt.Println(err)
 		panic(errors.New(errs["panicBadErrType"].Msg))
 	}
 	if err != nil {

@@ -15,7 +15,7 @@ func decryptAES(key []byte, nonce []byte, encryptedData []byte) ([]byte, error) 
 	check(err, errs["cryptAESCantCreateGCMBlock"])
 
 	decryptedData, err := aesgcm.Open(nil, nonce, encryptedData, nil)
-	check(err, errs["cryptoAESCantDecrypt"])
+	check(err, errs["cryptAESCantDecrypt"])
 
 	return decryptedData, err
 }
@@ -23,7 +23,7 @@ func decryptAES(key []byte, nonce []byte, encryptedData []byte) ([]byte, error) 
 func encryptAES(unencryptedData []byte) ([]byte, []byte, []byte, error) {
 	// Generate AES Session Key; to be RSA encrypted, and used to
 	// encrypt input file
-	key, err := generateRandomBytes(32)
+	key, err := generateRandomBytes(32) // 32bytes * 8bits = 256bits
 	check(err, errs["cryptAESCantGenerateSessionKey"])
 
 	aesCipher, err := aes.NewCipher(key)

@@ -1,0 +1,10 @@
+syntax = "proto3";
+package messages;
+
+enum MType {
+    IPC = 0;    // Interprocess Communication
+    RPC = 1;    // Reserved for if we do gRPC in back end
+    LCSF = 2;   // LegalCrypt SecureFile
+    LCSZ = 3;   // LegalCrypt SecureZip
+    LCMP = 4;   // LegalCrypt MultiPart -- maybe later use for VERY large files
+}
