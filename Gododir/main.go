@@ -9,7 +9,6 @@
 package main
 
 import (
-	//"fmt"
 	do "gopkg.in/godo.v2"
 )
 
@@ -21,20 +20,24 @@ func tasks(p *do.Project) {
 	// Buildy bits
 	p.Task("build", do.S{"clean", "buildall"}, nil)
 
-	p.Task("buildall", do.P{"build_darwin", "build_windows"}, nil)
+	p.Task("buildall", do.P{"build_darwin", "build_windows", "build_rpi"}, nil)
 
 	p.Task("build_windows", do.P{"build_win32", "build_win64"}, nil)
 
 	p.Task("build_darwin", nil, func(c *do.Context) {
-		c.Run("GOOS=darwin GOARCH=amd64 gb build")
+		c.Run("GOOS=darwin GOARCH=amd64 gb build all")
 	}).Src("src/**/*.go")
 
 	p.Task("build_win32", nil, func(c *do.Context) {
-		c.Run("GOOS=windows GOARCH=386 gb build")
+		c.Run("GOOS=windows GOARCH=386 gb build all")
 	}).Src("src/**/*.go")
 
 	p.Task("build_win64", nil, func(c *do.Context) {
-		c.Run("GOOS=windows GOARCH=amd64 gb build")
+		c.Run("GOOS=windows GOARCH=amd64 gb build all")
+	}).Src("src/**/*.go")
+
+	p.Task("build_rpi", nil, func(c *do.Context) {
+		c.Run("GOOS=linux GOARCH=arm gb build all")
 	}).Src("src/**/*.go")
 
 	// Vendor Updates
