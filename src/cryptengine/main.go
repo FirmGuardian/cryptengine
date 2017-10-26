@@ -42,6 +42,7 @@ func main() {
 	encryptPtr := flag.Bool("e", false, "Encrypt the given file")
 	keygenPtr := flag.Bool("gen", false, "Generates a new key pair")
 
+	outpathPtr := flag.String("o", "", "Output filename or path")
 	methodPtr := flag.String("t", "rsa", "Declares method of encryption/keygen")
 	decryptToken := flag.String("dt", constPassphrase, "Decrypt token provided by server")
 	passPtr := flag.String("p", constPassphrase, "User passphrase")
@@ -70,14 +71,13 @@ func main() {
 
 	// Generate Keypair
 	if *keygenPtr {
-		if *emailPtr != "" {
+		if *emailPtr != "" && *passPtr != "" {
 			generateKeypairs(*passPtr, *emailPtr)
 		} else {
 			fmt.Println("ERR::An email is necessary to generate keypairs.")
 			os.Exit(1000)
 		}
 	} else if numFiles > 0 {
-
 		// Decrypt a file
 		if *decryptPtr {
 
