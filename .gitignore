@@ -9,7 +9,7 @@ Thumbs.db
 /pkg
 /test
 
-!/test/README.txt
+!/test/README.md
 !/test/integrationTest.sh
 !/test/randos
 

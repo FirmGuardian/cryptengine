@@ -36,7 +36,7 @@ totalTests=10
 reportResults () {
 	echo "********** END TESTS **********"
     echo "$totalTests tests available."
-    echo "$runCount ran"
+    echo "$runCount ran."
     echo "$passedCount passed."
     echo "$failedCount failed."
     echo "*******************************"
