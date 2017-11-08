@@ -75,7 +75,7 @@ twoFileEncrypt() {
 # decrypts a given file, checks that the unencrypted version exists
 decrypt() {
     echo "decrypting..."
-    ./cryptengine-darwin-amd64 -d -p $password -eml $email -t rsa -d $2
+    ./cryptengine-darwin-amd64 -p $password -eml $email -t rsa -d $2
     exitcode=$?
     if [ ! -e $1 ] || [ ! $exitcode -eq 0 ]
     then
@@ -87,7 +87,7 @@ decrypt() {
 # like decrypt but for 2 files
 twoFileDecrypt() {
     echo "decrypting..."
-    ./cryptengine-darwin-amd64 -d -p $password -eml $email -t rsa -d lcsf_secured_files.zip.lcsf
+    ./cryptengine-darwin-amd64 -p $password -eml $email -t rsa -d lcsf_secured_files.zip.lcsf
     exitcode=$?
     if [ ! -e $1 ] || [ ! -e $2 ] || [ ! $exitcode -eq 0 ]
     then
