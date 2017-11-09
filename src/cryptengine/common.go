@@ -92,7 +92,11 @@ func generateRandomBytes(numBytes int) ([]byte, error) {
 }
 
 // Removes the legalCryptFileExtension from a filename, if it exists
-func getDecryptedFilename(fname string) (string, error) {
+func getDecryptedFilename(fname string, outpath string) (string, error) {
+	opath_info, _ := os.Stat(outpath)
+	opath_mode := opath_info.Mode()
+	opath_isDirectory := opath_mode.IsDir()
+
 	if strings.LastIndex(fname, legalCryptFileExtension) < 0 {
 		return "", errors.New(fname + " does not appear to be a valid LegalCrypt Protected File")
 	}
@@ -100,7 +104,7 @@ func getDecryptedFilename(fname string) (string, error) {
 }
 
 // Adds the legalCryptFileExtension to a filename
-func getEncryptedFilename(fname string) string {
+func getEncryptedFilename(fname string, outpath string) string {
 	return fname + legalCryptFileExtension
 }
 

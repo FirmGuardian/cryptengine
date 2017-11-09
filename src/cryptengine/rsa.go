@@ -15,7 +15,7 @@ import (
 	"os"
 )
 
-func decryptRSA(filePath string, secret string, email string) {
+func decryptRSA(filePath string, secret string, email string, outpath string) {
 	fileInfo, _ := os.Stat(filePath)
 	fileSize := fileInfo.Size()
 
@@ -96,7 +96,7 @@ func decryptRSA(filePath string, secret string, email string) {
 	check(err, errs["cryptCantDecryptFile"])
 	// END AES DECRYPT
 
-	outFilePath, err := getDecryptedFilename(filePath)
+	outFilePath, err := getDecryptedFilename(filePath, outpath)
 	fmt.Println("FILE::" + outFilePath)
 	nixIfExists(outFilePath)
 	outFile, err := os.Create(outFilePath)
@@ -108,14 +108,14 @@ func decryptRSA(filePath string, secret string, email string) {
 	w.Flush()
 }
 
-func encryptRSA(filePath string) error {
+func encryptRSA(filePath string, outpath string) error {
 	fileInfo, _ := os.Stat(filePath)
 	fileSize := fileInfo.Size()
 	if fileSize > maxInputFileSize {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
 	}
 
-	outFilePath := getEncryptedFilename(filePath)
+	outFilePath := getEncryptedFilename(filePath, outpath)
 	nixIfExists(outFilePath)
 
 	// Create output file, and Writer

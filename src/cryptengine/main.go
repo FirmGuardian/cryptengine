@@ -91,7 +91,7 @@ func main() {
 				case "rsa":
 					fmt.Printf(";;DecryptToken = %s\n", *decryptToken)
 
-					decryptRSA(tail[0], *passPtr, *emailPtr)
+					decryptRSA(tail[0], *passPtr, *emailPtr, &outpathPtr)
 				}
 			} else {
 				fmt.Println("ERR::Flag eml is required when decrypting")
@@ -112,7 +112,7 @@ func main() {
 			// Multiple files, or a directory
 			if numFiles > 1 || (numFiles == 1 && f0isDirectory) {
 				zipPath := archiveFiles(tail)
-				err := encryptRSA(zipPath)
+				err := encryptRSA(zipPath, &outpathPtr)
 				check(err, errs["cryptCantEncryptZip"])
 
 				os.Remove(zipPath)
@@ -126,7 +126,7 @@ func main() {
 					fmt.Println("ERR::Unknown encryption method")
 					os.Exit(1000)
 				case "rsa":
-					err := encryptRSA(tail[0])
+					err := encryptRSA(tail[0], &outpathPtr)
 					check(err, errs["cryptCantEncryptOrWrite"])
 					fmt.Println("FILE::" + tail[0] + legalCryptFileExtension)
 				}
