@@ -9,9 +9,12 @@
 
 ## Updating Vendor Libraries
 
+Vendor libraries should only be updated as part of the development of the application (e.g. golang version upgrades, bugfixes to features we use, performance enhancements, etc.) . You should not have to update vendor libraries as part of your dev environment setup, and you should never do a blanket update.
+
+To update a library:
 In the project root, type `gb vendor update <library_name>`.
 
-To blindly update all vendor libraries, use `-all` instead of the name of a library.
+To blindly update all vendor libraries (again, don't do this), use `-all` instead of the name of a library.
 
 # Command: `cryptengine`
 

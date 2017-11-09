@@ -9,6 +9,10 @@ Thumbs.db
 /pkg
 /test
 
+!/test/README.md
+!/test/integrationTest.sh
+!/test/randos
+
 id_rsa
 id_rsa.pub
 
