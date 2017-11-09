@@ -20,7 +20,7 @@ func tasks(p *do.Project) {
 	// Buildy bits
 	p.Task("build", do.S{"clean", "buildall"}, nil)
 
-	p.Task("buildall", do.P{"build_darwin", "build_windows", "build_rpi"}, nil)
+	p.Task("buildall", do.P{"build_darwin", "build_windows"}, nil)
 
 	p.Task("build_windows", do.P{"build_win32", "build_win64"}, nil)
 
@@ -36,10 +36,6 @@ func tasks(p *do.Project) {
 		c.Run("GOOS=windows GOARCH=amd64 gb build all")
 	}).Src("src/**/*.go")
 
-	p.Task("build_rpi", nil, func(c *do.Context) {
-		c.Run("GOOS=linux GOARCH=arm gb build all")
-	}).Src("src/**/*.go")
-
 	// Vendor Updates
 	p.Task("blind_update", nil, func(c *do.Context) {
 		c.Run("gb vendor update --all")
@@ -47,7 +43,8 @@ func tasks(p *do.Project) {
 
 	// Bin and pkg dir cleanup (think `make clean`)
 	p.Task("clean", nil, func(c *do.Context) {
-		c.Run("rm -Rf pkg/* && rm -f bin/*")
+		c.Run("rm -Rf pkg")
+		c.Run("rm -Rf bin")
 	})
 }
 
