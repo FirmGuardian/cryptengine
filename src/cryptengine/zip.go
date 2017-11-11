@@ -10,7 +10,7 @@ func archiveFiles(paths []string) string {
 	cwd, err := os.Getwd()
 	fmt.Println(";;CWD::" + cwd)
 
-	archivePath := ""
+	var archivePath string
 
 	if err != nil {
 		archivePath = "./lcsf_secured_files.zip"

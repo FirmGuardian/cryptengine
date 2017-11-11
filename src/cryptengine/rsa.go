@@ -25,6 +25,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	r := bufio.NewReaderSize(inFile, int(fileSize))
 	buf := make([]byte, int(fileSize))
 	_, err = r.Read(buf)
+	check(err, errs["ioCantReadFromFile"])
 	inFile.Close()
 
 	decryptFile := &messages.EncryptedFile{}
@@ -42,6 +43,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	// 5) Read encrypted data
 	encryptedData := decryptFile.GetEncryptedData()
 
+	// 6) Read the private key, and pem decode it
 	keySlurp, err := ioutil.ReadFile("./id_rsa")
 	check(err, errs["keypairCantReadPrivateKey"])
 	privateBlock, _ := pem.Decode(keySlurp)
@@ -49,9 +51,11 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 		check(errors.New(errs["cryptCantDecodePrivatePEM"].Msg), errs["cryptCantDecodePrivatePEM"])
 	}
 
+	// 7) Decrypt the private key using the password and email
 	der, err := x509.DecryptPEMBlock(privateBlock, scryptify(secret, email, 64))
 	check(err, errs["cryptCantDecryptPrivateBlock"])
 
+	// 8) Unmarshal the private key
 	privatePKCS, err := x509.ParsePKCS1PrivateKey(der)
 	check(err, errs["cryptCantParsePrivateKey"])
 
@@ -65,6 +69,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	// END AES DECRYPT
 
 	outFilePath, err := getDecryptedFilename(filePath, outpath)
+	// TODO: Add new error/check here...
 	fmt.Println("FILE::" + outFilePath)
 	nixIfExists(outFilePath)
 	outFile, err := os.Create(outFilePath)
@@ -88,6 +93,7 @@ func encryptRSA(filePath string, outpath string) error {
 
 	// Create output file, and Writer
 	outFile, err := os.Create(outFilePath)
+	// TODO: Add error/check here...
 	defer outFile.Close()
 
 	w := bufio.NewWriter(outFile)
@@ -119,9 +125,11 @@ func encryptRSA(filePath string, outpath string) error {
 
 	// BEGIN AES ENCRYPTION
 	encryptedBin, nonce, sessionKey, err := encryptAES(fSlurp)
+	// TODO: Check this error ^
 
 	// CipherKey
 	encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
+	// TODO: Check this error ^
 
 	encryptedFileProto := &messages.EncryptedFile{
 		Mtype:           messages.MType_LCSF, // It's all LCSF, atm. this should be passed in from main
@@ -132,6 +140,7 @@ func encryptRSA(filePath string, outpath string) error {
 	}
 
 	encryptedFile, err := proto.Marshal(encryptedFileProto)
+	// TODO: Check this error ^
 
 	w.Write(encryptedFile)
 	w.Flush()
@@ -142,8 +151,11 @@ func encryptRSA(filePath string, outpath string) error {
 func generateRSA4096(secret []byte) {
 	privateFilename := "./id_rsa"
 	publicFilename := privateFilename + ".pub"
-	if fileExists(privateFilename) && fileExists(publicFilename) {
-		return // don't regenerate key, for safety sake
+
+	existsPriv, _ := fileExists(privateFilename)
+	existsPub, _ := fileExists(publicFilename)
+	if existsPriv && existsPub {
+		return
 	}
 
 	// private1 *rsa.PrivateKey;
@@ -170,7 +182,7 @@ func derivePrivatePem(cipherKey *rsa.PrivateKey, secret []byte) []byte {
 	priv509, err := x509.EncryptPEMBlock(rand.Reader, privateBlock.Type, privateBlock.Bytes, secret, x509.PEMCipherAES256)
 	check(err, errs["keypairCantEncryptPrivatePEM"])
 
-	// Resultant private key in PEM format.
+	// Resulting private key in PEM format.
 	// priv_pem string
 	return pem.EncodeToMemory(priv509) // []byte
 }
