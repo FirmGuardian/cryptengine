@@ -1,4 +1,4 @@
-// Cryptengine is the cryptographic core of the electron client app.
+// Cryptengine is the cryptographic core used by the electron client app.
 //
 // Its function is to facilitate keypair generation, as well as
 // file de/encryption. The code may seem simple and mundane, but I
@@ -21,10 +21,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
+	//"log"
 	"os"
-	"runtime"
-	"runtime/pprof"
+	//"runtime"
+	//"runtime/pprof"
 )
 
 func generateKeypairs(passphrase string, email string) {
@@ -35,8 +35,9 @@ func generateKeypairs(passphrase string, email string) {
 // TODO: Abstract the main method's logic. It's getting all spaghetti in there.
 func main() {
 	// TODO: Remove these at some point
-	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
-	memprofile := flag.String("memprofile", "", "write memory profile to file")
+	// Please keep for now
+	//cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
+	//memprofile := flag.String("memprofile", "", "write memory profile to file")
 
 	decryptPtr := flag.Bool("d", false, "Decrypt the given file")
 	encryptPtr := flag.Bool("e", false, "Encrypt the given file")
@@ -53,14 +54,15 @@ func main() {
 	tail := flag.Args()
 
 	// TODO: Remove this, at some point
-	if *cpuprofile != "" {
-		f, err := os.Create(*cpuprofile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	}
+	// Please keep for now...
+	//if *cpuprofile != "" {
+	//	f, err := os.Create(*cpuprofile)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	pprof.StartCPUProfile(f)
+	//	defer pprof.StopCPUProfile()
+	//}
 
 	fmt.Println(";;Email: " + *emailPtr)
 	fmt.Println(";;Pass: " + *passPtr)
@@ -92,16 +94,17 @@ func main() {
 	fmt.Println("OK")
 
 	// TODO: remove this, at some point.
-	if *memprofile != "" {
-		f, err := os.Create(*memprofile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		runtime.GC()
-		pprof.WriteHeapProfile(f)
-		f.Close()
-		return
-	}
+	// Please keep for now...
+	//if *memprofile != "" {
+	//	f, err := os.Create(*memprofile)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	runtime.GC()
+	//	pprof.WriteHeapProfile(f)
+	//	f.Close()
+	//	return
+	//}
 }
 
 func generateKeyPair(passwd string, email string) {
