@@ -68,8 +68,8 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	check(err, errs["cryptCantDecryptFile"])
 	// END AES DECRYPT
 
-	outFilePath, err := getDecryptedFilename(filePath, outpath)
-	// TODO: Add new error/check here...
+	// TODO: _ is an err; write a check for it.
+	outFilePath, _ := getDecryptedFilename(filePath, outpath)
 	fmt.Println("FILE::" + outFilePath)
 	nixIfExists(outFilePath)
 	outFile, err := os.Create(outFilePath)
@@ -91,9 +91,8 @@ func encryptRSA(filePath string, outpath string) error {
 	outFilePath := getEncryptedFilename(filePath, outpath)
 	nixIfExists(outFilePath)
 
-	// Create output file, and Writer
-	outFile, err := os.Create(outFilePath)
-	// TODO: Add error/check here...
+	// Create output file, and Writer; TODO: _ is an err, write a check for it
+	outFile, _ := os.Create(outFilePath)
 	defer outFile.Close()
 
 	w := bufio.NewWriter(outFile)
@@ -124,12 +123,12 @@ func encryptRSA(filePath string, outpath string) error {
 	check(err, errs["fsCantOpenFile"])
 
 	// BEGIN AES ENCRYPTION
-	encryptedBin, nonce, sessionKey, err := encryptAES(fSlurp)
-	// TODO: Check this error ^
+	// TODO: _ is an err, write a check
+	encryptedBin, nonce, sessionKey, _ := encryptAES(fSlurp)
 
 	// CipherKey
-	encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
-	// TODO: Check this error ^
+	// TODO: _ is an err, write a check for it
+	encryptedSessionKey, _ := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
 
 	encryptedFileProto := &messages.EncryptedFile{
 		Mtype:           messages.MType_LCSF, // It's all LCSF, atm. this should be passed in from main
@@ -139,8 +138,8 @@ func encryptRSA(filePath string, outpath string) error {
 		EncryptedData:   encryptedBin,
 	}
 
-	encryptedFile, err := proto.Marshal(encryptedFileProto)
-	// TODO: Check this error ^
+	// TODO: _ is an err, write a check for it
+	encryptedFile, _ := proto.Marshal(encryptedFileProto)
 
 	w.Write(encryptedFile)
 	w.Flush()
