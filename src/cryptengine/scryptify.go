@@ -48,7 +48,6 @@
 package main
 
 import (
-	//"encoding/base64"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -63,7 +62,3 @@ func scryptify(pass string, email string, keyLen int) []byte {
 
 	return key
 }
-
-//func scryptify64(pass string, email string, keyLen int) string {
-//	return base64.StdEncoding.EncodeToString(scryptify(pass, email, keyLen))
-//}

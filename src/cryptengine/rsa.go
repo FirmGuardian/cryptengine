@@ -44,7 +44,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	encryptedData := decryptFile.GetEncryptedData()
 
 	// 6) Read the private key, and pem decode it
-	keySlurp, err := ioutil.ReadFile("./id_rsa")
+	keySlurp, err := ioutil.ReadFile(keyDir() + pathSeparator() + "id_rsa")
 	check(err, errs["keypairCantReadPrivateKey"])
 	privateBlock, _ := pem.Decode(keySlurp)
 	if privateBlock == nil || privateBlock.Type != "RSA PRIVATE KEY" {
@@ -88,7 +88,7 @@ func encryptRSA(filePath string, outpath string) error {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
 	}
 
-	outFilePath := getEncryptedFilename(filePath, outpath)
+	outFilePath := getEncryptedFilename(outpath)
 	nixIfExists(outFilePath)
 
 	// Create output file, and Writer; TODO: _ is an err, write a check for it
@@ -98,7 +98,7 @@ func encryptRSA(filePath string, outpath string) error {
 	w := bufio.NewWriter(outFile)
 
 	// Slurp and parse public key to encrypt AES Session Key
-	keySlurp, err := ioutil.ReadFile("./id_rsa.pub")
+	keySlurp, err := ioutil.ReadFile(keyDir() + pathSeparator() + "id_rsa.pub")
 	check(err, errs["keypairCantReadPublicKey"])
 	publicBlock, _ := pem.Decode(keySlurp)
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
@@ -148,7 +148,7 @@ func encryptRSA(filePath string, outpath string) error {
 }
 
 func generateRSA4096(secret []byte) {
-	privateFilename := "./id_rsa"
+	privateFilename := keyDir() + pathSeparator() + "id_rsa"
 	publicFilename := privateFilename + ".pub"
 
 	existsPriv, _ := fileExists(privateFilename)

@@ -1,6 +1,4 @@
-/*
- * TODO: Need to improve consistency
- */
+// TODO: Need to improve consistency
 
 package main
 
@@ -9,15 +7,17 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 )
 
+// ErrType is an exported type used throughout the application to map simple, semantic string keys
+// to structs that provide both an error code for exit values, as well as a more human readable
+// error message.
 type ErrType struct {
 	Code uint16
 	Msg  string
 }
-
-type OutPathMode uint8
 
 func (t ErrType) code() int {
 	return int(t.Code)
@@ -25,12 +25,15 @@ func (t ErrType) code() int {
 
 // Universal constants
 const (
-	constPassphrase         string      = ""
-	legalCryptFileExtension string      = ".lcsf"
-	maxInputFileSize        int64       = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
-	outPathFile             OutPathMode = 0
-	outPathDir              OutPathMode = 1
+	constPassphrase         string = ""
+	legalCryptFileExtension string = ".lcsf"
+	maxInputFileSize        int64  = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 )
+
+var appRoot = map[string]string{
+	"darwin":  "~/.LegalCrypt",
+	"windows": "%AppData%/LegalCrypt",
+}
 
 // Error Definitions, all in one spot
 var errs = map[string]ErrType{
@@ -102,14 +105,20 @@ func getDecryptedFilename(fname string, outpath string) (string, error) {
 	opathMode := opathInfo.Mode()
 	opathIsDirectory := opathMode.IsDir()
 
-	if strings.LastIndex(fname, legalCryptFileExtension) < 0 {
+	if !pathEndsWithLCSF(strings.ToLower(fname)) {
 		return "", errors.New(fname + " does not appear to be a valid LegalCrypt Protected File")
 	}
-	return strings.Replace(fname, legalCryptFileExtension, "", -1), nil
+
+	if opathIsDirectory {
+		// TODO: write this as an LC Error
+		return "", errors.New("output path exists and is a directory")
+	}
+
+	return strings.Replace(outpath, legalCryptFileExtension, "", -1), nil
 }
 
 // Adds the legalCryptFileExtension to a filename
-func getEncryptedFilename(fname string, outpath string) string {
+func getEncryptedFilename(fname string) string {
 	return fname + legalCryptFileExtension
 }
 
@@ -120,27 +129,28 @@ func nixIfExists(filePath string) {
 	}
 }
 
-// Test filename if it has LegalCrypt File Extension
-//func isLegalCryptFileName
+func pathEndsWithLCSF(path string) bool {
+	return pathEndsWith(path, legalCryptFileExtension)
+}
 
-// Test the outpath
-func testOutPath(outpath string) (string, OutPathMode, error) {
-	pathExists, opathInfo := fileExists(outpath)
+//func pathEndsInSeparator(path string) bool {
+//	return pathEndsWith(path, pathSeparator())
+//}
 
-	if pathExists {
-		mode := opathInfo.Mode()
-		isDir := mode.IsDir()
+func pathEndsWith(haystack string, needle string) bool {
+	lastIndex := strings.LastIndex(haystack, needle)
+	return 0 == len(haystack)-lastIndex-len(needle)
+}
 
-		if isDir {
-			if strings.LastIndex(outpath, string(os.PathSeparator)) < 0 {
-				return outpath + "/", outPathDir, nil
-			}
+func keyDir() string {
+	return appRoot[runtime.GOOS] + pathSeparator() + "keys"
+}
 
-			return outpath, outPathDir, nil
-		}
+// TODO: uncomment to implement zipping in tmp after outPath implemented
+//func tmpDir() string {
+//	return appRoot[runtime.GOOS] + pathSeparator() + "tmp"
+//}
 
-		return outpath, outPathFile, nil
-	}
-
-	return "", outPathFile, errors.New("Path does not exist.")
+func pathSeparator() string {
+	return string(os.PathSeparator)
 }

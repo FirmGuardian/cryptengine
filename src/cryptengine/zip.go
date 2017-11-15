@@ -12,6 +12,7 @@ func archiveFiles(paths []string) string {
 
 	var archivePath string
 
+	// archivePath = tmpPath() + "/lcsf_secured_files.zip"
 	if err != nil {
 		archivePath = "./lcsf_secured_files.zip"
 	} else {
