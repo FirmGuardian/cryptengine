@@ -30,7 +30,8 @@ const (
 	maxInputFileSize        int64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 )
 
-var appRoot = map[string]string{
+var appRootByOS = map[string]string{
+	"linux":   "~/.LegalCrypt",
 	"darwin":  "~/.LegalCrypt",
 	"windows": "%AppData%/LegalCrypt",
 }
@@ -143,14 +144,24 @@ func pathEndsWith(haystack string, needle string) bool {
 }
 
 func keyDir() string {
-	return appRoot[runtime.GOOS] + pathSeparator() + "keys"
+	return appRoot() + pathSeparator() + "keys"
 }
 
 // TODO: uncomment to implement zipping in tmp after outPath implemented
 //func tmpDir() string {
-//	return appRoot[runtime.GOOS] + pathSeparator() + "tmp"
+//	return appRoot() + pathSeparator() + "tmp"
 //}
 
 func pathSeparator() string {
 	return string(os.PathSeparator)
+}
+
+func appRoot() string {
+	path := appRootByOS[string(runtime.GOOS)]
+
+	if path == "" {
+		panic("Unsupported operating system")
+	}
+
+	return path
 }
