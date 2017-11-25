@@ -34,6 +34,8 @@ func generateKeypairs(passphrase string, email string) {
 
 // TODO: Abstract the main method's logic. It's getting all spaghetti in there.
 func main() {
+	// First things first: ensure we have the directory scaffold we desire.
+	scaffoldAppDirs()
 	// TODO: Remove these at some point
 	// Please keep for now
 	//cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
@@ -142,14 +144,13 @@ func encryptFiles(files []string, method string, outPath string) {
 	fmt.Println(";;Encrypting file(s)")
 	numFiles := len(files)
 	// File checks on the first file to be encrypted
-	f0info, err := os.Stat(files[0])
-	check(err, errs["fsCantOpenFile"])
-	f0mode := f0info.Mode()
-	f0isRegular := f0mode.IsRegular()
-	f0isDirectory := f0mode.IsDir()
+	f0 := pathInfo(files[0])
+	if !f0.Exists {
+		check(errors.New(errs["fsCantOpenFile"].Msg), errs["fsCantOpenFile"])
+	}
 
 	// Multiple files, or a directory
-	if numFiles > 1 || (numFiles == 1 && f0isDirectory) {
+	if numFiles > 1 || (numFiles == 1 && f0.IsDir) {
 		zipPath := archiveFiles(files)
 		err := encryptRSA(zipPath, outPath)
 		check(err, errs["cryptCantEncryptZip"])
@@ -159,7 +160,7 @@ func encryptFiles(files []string, method string, outPath string) {
 		fmt.Println("FILE::" + zipPath + legalCryptFileExtension)
 
 		// Just one file, and it's normal (e.g. not /dev/null)
-	} else if numFiles == 1 && f0isRegular == true {
+	} else if numFiles == 1 && f0.IsReg {
 		switch method {
 		default:
 			// TODO: Make an error out of this...

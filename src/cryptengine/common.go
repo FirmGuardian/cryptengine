@@ -157,11 +157,11 @@ func pathSeparator() string {
 }
 
 func appRoot() string {
-	path := appRootByOS[string(runtime.GOOS)]
+	p := appRootByOS[string(runtime.GOOS)]
 
-	if path == "" {
+	if p == "" {
 		panic("Unsupported operating system")
 	}
 
-	return path
+	return p
 }
