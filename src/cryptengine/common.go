@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"runtime"
 	"strings"
 )
 
@@ -29,12 +28,6 @@ const (
 	legalCryptFileExtension       = ".lcsf"
 	maxInputFileSize        int64 = 1024 * 1024 * 512 // 512MB; uint64 to support >= 4GB
 )
-
-var appRootByOS = map[string]string{
-	"linux":   "~/.LegalCrypt",
-	"darwin":  "~/.LegalCrypt",
-	"windows": "%AppData%/LegalCrypt",
-}
 
 // Error Definitions, all in one spot
 var errs = map[string]ErrType{
@@ -121,47 +114,4 @@ func getDecryptedFilename(fname string, outpath string) (string, error) {
 // Adds the legalCryptFileExtension to a filename
 func getEncryptedFilename(fname string) string {
 	return fname + legalCryptFileExtension
-}
-
-// If the file exists, delete it
-func nixIfExists(filePath string) {
-	if exists, _ := fileExists(filePath); exists {
-		check(os.Remove(filePath), errs["fsCantDeleteFile"])
-	}
-}
-
-func pathEndsWithLCSF(path string) bool {
-	return pathEndsWith(path, legalCryptFileExtension)
-}
-
-//func pathEndsInSeparator(path string) bool {
-//	return pathEndsWith(path, pathSeparator())
-//}
-
-func pathEndsWith(haystack string, needle string) bool {
-	lastIndex := strings.LastIndex(haystack, needle)
-	return 0 == len(haystack)-lastIndex-len(needle)
-}
-
-func keyDir() string {
-	return appRoot() + pathSeparator() + "keys"
-}
-
-// TODO: uncomment to implement zipping in tmp after outPath implemented
-//func tmpDir() string {
-//	return appRoot() + pathSeparator() + "tmp"
-//}
-
-func pathSeparator() string {
-	return string(os.PathSeparator)
-}
-
-func appRoot() string {
-	p := appRootByOS[string(runtime.GOOS)]
-
-	if p == "" {
-		panic("Unsupported operating system")
-	}
-
-	return p
 }

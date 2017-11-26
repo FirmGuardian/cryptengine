@@ -5,7 +5,7 @@ import (
 	"crypto/cipher"
 )
 
-const lenAESNonce uint8 = 12
+const lenAESNonce = 12
 
 func decryptAES(key []byte, nonce []byte, encryptedData []byte) ([]byte, error) {
 	aesCipher, err := aes.NewCipher(key)
@@ -30,7 +30,7 @@ func encryptAES(unencryptedData []byte) ([]byte, []byte, []byte, error) {
 	check(err, errs["cryptAESCantCreateCipher"])
 
 	// Generate nonce
-	nonce, _ := generateRandomBytes(int(lenAESNonce))
+	nonce, _ := generateRandomBytes(lenAESNonce)
 
 	aesgcm, err := cipher.NewGCM(aesCipher)
 	check(err, errs["cryptAESCantCreateGCMBlock"])
