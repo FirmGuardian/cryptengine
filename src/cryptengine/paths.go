@@ -8,9 +8,15 @@ import (
 	"strings"
 )
 
+const (
+	dirBin  = "bin"
+	dirKeys = "keys"
+	dirTmp  = "tmp"
+)
+
 // LCPath makes for os-independent path declarations for scaffolding
 type LCPath struct {
-	segments    []string
+	path        string
 	permissions os.FileMode
 }
 
@@ -53,8 +59,16 @@ func appRoot() string {
 	return p
 }
 
+func binDir() string {
+	return path.Join(appRoot(), dirBin)
+}
+
 func keyDir() string {
-	return appRoot() + pathSeparator() + "keys"
+	return path.Join(appRoot(), dirKeys)
+}
+
+func tmpDir() string {
+	return path.Join(appRoot(), dirTmp)
 }
 
 // If a path exists, delete it
@@ -88,27 +102,24 @@ func pathInfo(p string) PathInfo {
 }
 
 func scaffoldAppDirs() {
-	root := appRoot()
-
 	lcPaths := []LCPath{
 		{
-			segments:    []string{root, "bin"},
+			path:        binDir(),
 			permissions: 0700,
 		},
 		{
-			segments:    []string{root, "keys"},
+			path:        keyDir(),
 			permissions: 0600,
 		},
 		{
-			segments:    []string{root, "tmp"},
+			path:        tmpDir(),
 			permissions: 0600,
 		},
 	}
 
 	for _, lcPath := range lcPaths {
-		p := path.Join(lcPath.segments...)
-		fmt.Printf("%v...", p)
-		err := os.MkdirAll(p, lcPath.permissions)
+		fmt.Printf("%v...", lcPath.path)
+		err := os.MkdirAll(lcPath.path, lcPath.permissions)
 		if err != nil {
 			fmt.Println("ERR")
 		} else {
@@ -123,16 +134,11 @@ func pathEndsWith(haystack string, needle string) bool {
 }
 
 func pathEndsWithLCSF(path string) bool {
-	return pathEndsWith(path, legalCryptFileExtension)
+	return pathEndsWith(strings.ToLower(path), legalCryptFileExtension)
 }
 
 //func pathEndsWithSeparator(path string) bool {
 //	return pathEndsWith(path, pathSeparator())
-//}
-
-// TODO: uncomment to implement zipping in tmp after outPath implemented
-//func tmpDir() string {
-//	return appRoot() + pathSeparator() + "tmp"
 //}
 
 func pathSeparator() string {
