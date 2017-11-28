@@ -25,6 +25,8 @@ import (
 	"os"
 	//"runtime"
 	//"runtime/pprof"
+
+	"github.com/FirmGuardian/legalcrypt-protos/messages"
 )
 
 func generateKeypairs(passphrase string, email string) {
@@ -152,7 +154,7 @@ func encryptFiles(files []string, method string, outPath string) {
 	// Multiple files, or a directory
 	if numFiles > 1 || (numFiles == 1 && f0.IsDir) {
 		zipPath := archiveFiles(files)
-		err := encryptRSA(zipPath, outPath)
+		err := encryptRSA(zipPath, outPath, messages.MType_LCSZ)
 		check(err, errs["cryptCantEncryptZip"])
 
 		os.Remove(zipPath)
@@ -167,7 +169,7 @@ func encryptFiles(files []string, method string, outPath string) {
 			fmt.Println("ERR::Unknown encryption method")
 			os.Exit(1000)
 		case "rsa":
-			err := encryptRSA(files[0], outPath)
+			err := encryptRSA(files[0], outPath, messages.MType_LCSF)
 			check(err, errs["cryptCantEncryptOrWrite"])
 			fmt.Println("FILE::" + files[0] + legalCryptFileExtension)
 		}

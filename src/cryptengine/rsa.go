@@ -86,7 +86,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	w.Flush()
 }
 
-func encryptRSA(filePath string, outpath string) error {
+func encryptRSA(filePath string, outpath string, mtype messages.MType) error {
 	fileInfo := pathInfo(filePath)
 	if fileInfo.Size > maxInputFileSize {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
@@ -135,7 +135,7 @@ func encryptRSA(filePath string, outpath string) error {
 	encryptedSessionKey, _ := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
 
 	encryptedFileProto := &messages.EncryptedFile{
-		Mtype:           messages.MType_LCSF, // It's all LCSF, atm. this should be passed in from main
+		Mtype:           mtype,
 		RecipientHashes: publicKeyHashes,
 		CipherKey:       encryptedSessionKey,
 		CipherNonce:     nonce,
