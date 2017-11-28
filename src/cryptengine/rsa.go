@@ -22,14 +22,13 @@ const (
 )
 
 func decryptRSA(filePath string, secret string, email string, outpath string) {
-	fileInfo, _ := os.Stat(filePath)
-	fileSize := fileInfo.Size()
+	fileInfo := pathInfo(filePath)
 
 	// 1) Open the file
 	inFile, err := os.Open(filePath)
 	check(err, errs["fsCantOpenFile"])
-	r := bufio.NewReaderSize(inFile, int(fileSize))
-	buf := make([]byte, int(fileSize))
+	r := bufio.NewReaderSize(inFile, int(fileInfo.Size))
+	buf := make([]byte, int(fileInfo.Size))
 	_, err = r.Read(buf)
 	check(err, errs["ioCantReadFromFile"])
 	inFile.Close()
@@ -88,9 +87,8 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 }
 
 func encryptRSA(filePath string, outpath string) error {
-	fileInfo, _ := os.Stat(filePath)
-	fileSize := fileInfo.Size()
-	if fileSize > maxInputFileSize {
+	fileInfo := pathInfo(filePath)
+	if fileInfo.Size > maxInputFileSize {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
 	}
 
