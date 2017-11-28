@@ -31,7 +31,7 @@ import (
 
 func generateKeypairs(passphrase string, email string) {
 	fmt.Println(";;Generating keypair")
-	generateRSA4096(scryptify(passphrase, email, 64))
+	generateRSA4096(deriveKey(passphrase, email, 64))
 }
 
 // TODO: Abstract the main method's logic. It's getting all spaghetti in there.

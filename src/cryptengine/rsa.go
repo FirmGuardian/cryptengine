@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	idRSA  = "id_rsa"
-	pubRSA = "id_rsa.pub"
+	idRSA     = "id_rsa"
+	pubRSA    = "id_rsa.pub"
+	lenRSAKey = 64
 )
 
 func decryptRSA(filePath string, secret string, email string, outpath string) {
@@ -57,7 +58,8 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	}
 
 	// 7) Decrypt the private key using the password and email
-	der, err := x509.DecryptPEMBlock(privateBlock, scryptify(secret, email, 64))
+	// TODO: actually salt this
+	der, err := x509.DecryptPEMBlock(privateBlock, deriveKey(secret, email, lenRSAKey))
 	check(err, errs["cryptCantDecryptPrivateBlock"])
 
 	// 8) Unmarshal the private key

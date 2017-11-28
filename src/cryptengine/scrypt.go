@@ -51,7 +51,7 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
-func scryptify(pass string, email string, keyLen int) []byte {
+func deriveKey(pass string, email string, keyLen int) []byte {
 	passwd := []byte(pass)
 	salt := []byte(email)
 	N := 512 * 1024
