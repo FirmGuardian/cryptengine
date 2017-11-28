@@ -19,6 +19,9 @@ func (t ErrType) code() int {
 }
 
 // Error Definitions, all in one spot
+// TODO: Replace strings with actual errors for simpler throws
+// TODO: Obfuscate crypto-related errors with "De/Encryption Failed", but keep something meaningful in comments.
+// TODO: ^^ Reason: the more info we give to an attacker about a failure, the easier we are to attack.
 var errs = map[string]ErrType{
 	"fsCantOpenFile":                    {200, "Unable to access file"},
 	"fsCantCreateFile":                  {201, "Unable to create file"},
