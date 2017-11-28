@@ -30,6 +30,7 @@ type PathInfo struct {
 	Exists bool
 	IsDir  bool
 	IsReg  bool
+	Size   int64
 }
 
 func appRoot() string {
@@ -81,12 +82,14 @@ func nixIfExists(filePath string) {
 func pathInfo(p string) PathInfo {
 	d, f := path.Split(p)
 	exists, isdir, isreg := false, false, false
+	var sz int64
 	finfo, err := os.Stat(p)
 	if err == nil {
 		exists = true
 		mode := finfo.Mode()
 		isdir = mode.IsDir()
 		isreg = mode.IsRegular()
+		sz = finfo.Size()
 	}
 
 	return PathInfo{
@@ -98,6 +101,7 @@ func pathInfo(p string) PathInfo {
 		Exists: exists,
 		IsDir:  isdir,
 		IsReg:  isreg,
+		Size:   sz,
 	}
 }
 

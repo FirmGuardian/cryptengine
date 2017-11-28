@@ -84,6 +84,6 @@ func getDecryptedFilename(fname string, outpath string) (string, error) {
 
 // Adds the legalCryptFileExtension to a filename
 func getEncryptedFilename(fname string) string {
-	// TODO: Superfluous, at the moment. Add checks, or something?
+	// TODO: Superfluous, at the moment. Check if exists, and if not, ensure dirs-to-file exist w/ MkDirAll()
 	return appendTrailingLCExt(fname)
 }
