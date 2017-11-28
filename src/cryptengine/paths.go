@@ -130,17 +130,18 @@ func scaffoldAppDirs() {
 
 func pathEndsWith(haystack string, needle string) bool {
 	lastIndex := strings.LastIndex(haystack, needle)
-	return 0 == len(haystack)-lastIndex-len(needle)
+	return 0 == len(haystack)-lastIndex-len(needle) // simple, but fragile. consider using the pathInfo.Ext
 }
 
 func pathEndsWithLCSF(path string) bool {
 	return pathEndsWith(strings.ToLower(path), legalCryptFileExtension)
 }
 
-//func pathEndsWithSeparator(path string) bool {
-//	return pathEndsWith(path, pathSeparator())
-//}
+func stripTrailingLCExt(p string) string {
+	return strings.Replace(p, legalCryptFileExtension, "", -1)
+}
 
-func pathSeparator() string {
-	return string(os.PathSeparator)
+func appendTrailingLCExt(p string) string {
+	// TODO: sanity check--if present, strip trailing '.' from p
+	return p + legalCryptFileExtension
 }

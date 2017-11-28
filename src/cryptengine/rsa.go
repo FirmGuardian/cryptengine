@@ -13,6 +13,12 @@ import (
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
 	"os"
+	"path"
+)
+
+const (
+	idRSA  = "id_rsa"
+	pubRSA = "id_rsa.pub"
 )
 
 func decryptRSA(filePath string, secret string, email string, outpath string) {
@@ -44,7 +50,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	encryptedData := decryptFile.GetEncryptedData()
 
 	// 6) Read the private key, and pem decode it
-	keySlurp, err := ioutil.ReadFile(keyDir() + pathSeparator() + "id_rsa")
+	keySlurp, err := ioutil.ReadFile(path.Join(keyDir(), idRSA))
 	check(err, errs["keypairCantReadPrivateKey"])
 	privateBlock, _ := pem.Decode(keySlurp)
 	if privateBlock == nil || privateBlock.Type != "RSA PRIVATE KEY" {
@@ -98,7 +104,7 @@ func encryptRSA(filePath string, outpath string) error {
 	w := bufio.NewWriter(outFile)
 
 	// Slurp and parse public key to encrypt AES Session Key
-	keySlurp, err := ioutil.ReadFile(keyDir() + pathSeparator() + "id_rsa.pub")
+	keySlurp, err := ioutil.ReadFile(path.Join(keyDir(), pubRSA))
 	check(err, errs["keypairCantReadPublicKey"])
 	publicBlock, _ := pem.Decode(keySlurp)
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
@@ -148,7 +154,7 @@ func encryptRSA(filePath string, outpath string) error {
 }
 
 func generateRSA4096(secret []byte) {
-	privateFilename := keyDir() + pathSeparator() + "id_rsa"
+	privateFilename := path.Join(keyDir(), idRSA)
 	publicFilename := privateFilename + ".pub"
 
 	existsPriv, _ := fileExists(privateFilename)

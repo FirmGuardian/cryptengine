@@ -1,5 +1,3 @@
-// TODO: Need to improve consistency
-
 package main
 
 import (
@@ -7,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
+	"path"
 )
 
 // Universal constants
@@ -31,6 +29,7 @@ func generateRandomBytes(numBytes int) ([]byte, error) {
 	b := make([]byte, numBytes)
 	n, err := rand.Read(b)
 	if n != len(b) || err != nil {
+		// TODO: Move to errors.go
 		return nil, fmt.Errorf("ERR::Unable to successfully read from the system CSPRNG (%v)", err)
 	}
 
@@ -39,23 +38,52 @@ func generateRandomBytes(numBytes int) ([]byte, error) {
 
 // Removes the legalCryptFileExtension from a filename, if it exists
 func getDecryptedFilename(fname string, outpath string) (string, error) {
-	opathInfo, _ := os.Stat(outpath)
-	opathMode := opathInfo.Mode()
-	opathIsDirectory := opathMode.IsDir()
+	fInfo := pathInfo(fname)
+	outInfo := pathInfo(outpath)
 
-	if !pathEndsWithLCSF(strings.ToLower(fname)) {
+	var decryptPath string
+
+	if !pathEndsWithLCSF(fname) {
+		// TODO: Make a proper error out of this in errors.go
 		return "", errors.New(fname + " does not appear to be a valid LegalCrypt Protected File")
 	}
 
-	if opathIsDirectory {
-		// TODO: write this as an LC Error
-		return "", errors.New("output path exists and is a directory")
+	if outpath == "" {
+		// cut out early, if empty outpath
+		return stripTrailingLCExt(outpath), nil
 	}
 
-	return strings.Replace(outpath, legalCryptFileExtension, "", -1), nil
+	if outInfo.Exists {
+		if outInfo.IsDir {
+			decryptPath = path.Join(outInfo.Clean, fInfo.File)
+		} else if outInfo.IsReg {
+			// looks like it exists as a regular file. Nix it
+			decryptPath = stripTrailingLCExt(outInfo.Clean)
+			nixIfExists(decryptPath)
+		} else {
+			// This is not a file we should be touching
+			return "", fmt.Errorf("ERR::Illegal attempt to overwrite special file (%v)", outInfo.Clean)
+		}
+	} else {
+		// Treat outpath as directory
+		if outInfo.Ext == "" {
+			// Make the directory, since it doesn't exist
+			err := os.MkdirAll(outInfo.Clean, 0600)
+			if err != nil {
+				return "", fmt.Errorf("ERR::Unable to create directory (%v)", outInfo.Clean)
+			}
+			decryptPath = path.Join(outInfo.Clean, fInfo.File)
+		} else {
+			// Looks like a file. Strip any LC extension, and return
+			decryptPath = stripTrailingLCExt(outInfo.Clean)
+		}
+	}
+
+	return decryptPath, nil
 }
 
 // Adds the legalCryptFileExtension to a filename
 func getEncryptedFilename(fname string) string {
-	return fname + legalCryptFileExtension
+	// TODO: Superfluous, at the moment. Add checks, or something?
+	return appendTrailingLCExt(fname)
 }
