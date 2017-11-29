@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path"
 	"runtime"
 	"strings"
@@ -68,6 +69,24 @@ func keyDir() string {
 	return path.Join(appRoot(), dirKeys)
 }
 
+func outDirDec() string {
+	currentUser, err := user.Current()
+	if err != nil {
+		// TODO: Handle this better
+		panic(err)
+	}
+	return path.Join(currentUser.HomeDir, "Documents", "LegalCrypt", "Received")
+}
+
+func outDirEnc() string {
+	currentUser, err := user.Current()
+	if err != nil {
+		// TODO: Handle this better
+		panic(err)
+	}
+	return path.Join(currentUser.HomeDir, "Documents", "LegalCrypt", "Secured")
+}
+
 func tmpDir() string {
 	return path.Join(appRoot(), dirTmp)
 }
@@ -113,6 +132,14 @@ func scaffoldAppDirs() {
 		},
 		{
 			path:        keyDir(),
+			permissions: 0600,
+		},
+		{
+			path:        outDirDec(),
+			permissions: 0600,
+		},
+		{
+			path:        outDirEnc(),
 			permissions: 0600,
 		},
 		{
