@@ -173,6 +173,8 @@ func stripTrailingLCExt(p string) string {
 }
 
 func appendTrailingLCExt(p string) string {
-	// TODO: sanity check--if present, strip trailing '.' from p
+	if strings.HasSuffix(p, ".") {
+		p = strings.Replace(p, ".", "", -1)
+	}
 	return p + legalCryptFileExtension
 }
