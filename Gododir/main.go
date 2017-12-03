@@ -22,14 +22,10 @@ func tasks(p *do.Project) {
 
 	p.Task("buildall", do.P{"build_darwin", "build_windows"}, nil)
 
-	p.Task("build_windows", do.P{"build_win32", "build_win64"}, nil)
+	p.Task("build_windows", do.P{"build_win64"}, nil)
 
 	p.Task("build_darwin", nil, func(c *do.Context) {
 		c.Run("GOOS=darwin GOARCH=amd64 gb build all")
-	}).Src("src/**/*.go")
-
-	p.Task("build_win32", nil, func(c *do.Context) {
-		c.Run("GOOS=windows GOARCH=386 gb build all")
 	}).Src("src/**/*.go")
 
 	p.Task("build_win64", nil, func(c *do.Context) {
