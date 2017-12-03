@@ -155,7 +155,7 @@ func encryptRSA(filePath string, outpath string, mtype messages.MType) error {
 
 func generateRSA4096(secret []byte) {
 	privateFilename := path.Join(keyDir(), idRSA)
-	publicFilename := privateFilename + ".pub"
+	publicFilename := path.Join(keyDir(), pubRSA)
 
 	existsPriv, _ := fileExists(privateFilename)
 	existsPub, _ := fileExists(publicFilename)
