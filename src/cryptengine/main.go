@@ -123,6 +123,9 @@ func generateKeyPair(passwd string, email string) {
 
 func decryptFiles(path string, method string, passwd string, email string, decryptToken string, outPath string) {
 	// We need an email to perform decryption
+	if outPath == "" {
+		outPath = outDirDec() // Get calculated default outdir
+	}
 	if email != "" {
 		fmt.Println(";;Decrypting file")
 		switch method {
@@ -143,6 +146,9 @@ func decryptFiles(path string, method string, passwd string, email string, decry
 }
 
 func encryptFiles(files []string, method string, outPath string) {
+	if outPath == "" {
+		outPath = outDirEnc() // Get calculated default outdir
+	}
 	fmt.Println(";;Encrypting file(s)")
 	numFiles := len(files)
 	// File checks on the first file to be encrypted
