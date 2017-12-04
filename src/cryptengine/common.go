@@ -59,7 +59,7 @@ func getDecryptedFilename(fname string, outpath string) (string, error) {
 			decryptPath = path.Join(outInfo.Clean, fInfo.File)
 		} else if outInfo.IsReg {
 			// looks like it exists as a regular file. Nix it
-			decryptPath = stripTrailingLCExt(outInfo.Clean)
+			decryptPath = outInfo.Clean
 			nixIfExists(decryptPath)
 		} else {
 			// This is not a file we should be touching
@@ -76,13 +76,13 @@ func getDecryptedFilename(fname string, outpath string) (string, error) {
 			decryptPath = path.Join(outInfo.Clean, fInfo.File)
 		} else {
 			// Looks like a file. Strip any LC extension, and return
-			decryptPath = stripTrailingLCExt(outInfo.Clean)
+			decryptPath = outInfo.Clean
 			dpInfo := pathInfo(decryptPath)
 			os.MkdirAll(dpInfo.Dir, 0700)
 		}
 	}
 
-	return decryptPath, nil
+	return stripTrailingLCExt(decryptPath), nil
 }
 
 // Adds the legalCryptFileExtension to a filename
