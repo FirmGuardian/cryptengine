@@ -1,11 +1,16 @@
 # Getting Started
 
-## Building the Project
+## Tooling
 
 1) Golang: This version of `cryptengine` uses Go v1.9.x. You can find that [here](https://golang.org/dl/).
 2) GB: This project has been scaffolded for GB. You can find that [here](https://getgb.io/docs/install/).
 3) Godo: This project uses a Golang task runner that's in the same vein as Gulp or Rake. From the command line, run `go get -u gopkg.in/godo.v2/cmd/godo`
-3) In the root of the project, type `godo` to build the project for macOS and Windows.
+4) [Optional] It is highly recommended to utilize Gometalinter, a wrapper around a set of static analyzers and linting tools. You can find it [here](https://github.com/alecthomas/gometalinter).
+
+## Building the Project
+
+1) In the root of the project, type `godo` to build the project for macOS and Windows.
+2) High-five yourself for winning.
 
 ## Updating Vendor Libraries
 

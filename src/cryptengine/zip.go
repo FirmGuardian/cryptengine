@@ -1,22 +1,16 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jhoonb/archivex"
-	"os"
+	"path"
 )
 
+const lcszFileName = "lcsf_secured_files.zip"
+
 func archiveFiles(paths []string) string {
-	cwd, err := os.Getwd()
-	fmt.Println(";;CWD::" + cwd)
-
-	archivePath := ""
-
-	if err != nil {
-		archivePath = "./lcsf_secured_files.zip"
-	} else {
-		archivePath = cwd + "/lcsf_secured_files.zip"
-	}
+	archivePath := path.Join(tmpDir(), lcszFileName)
 
 	archive := new(archivex.ZipFile)
 	archive.Create(archivePath)
@@ -26,17 +20,15 @@ func archiveFiles(paths []string) string {
 	var skippedFiles []string
 
 	for _, path := range paths {
-		fileInfo, err := os.Stat(path)
-		check(err, errs["fsCantOpenFile"])
+		fileInfo := pathInfo(path)
+		if !fileInfo.Exists {
+			check(errors.New(errs["fsCantOpenFile"].Msg), errs["fsCantOpenFile"])
+		}
 
-		fmode := fileInfo.Mode()
-		isDirectory := fmode.IsDir()
-		isRegular := fmode.IsRegular()
-
-		if isRegular {
+		if fileInfo.IsReg {
 			archive.AddFile(path)
 			fmt.Printf("ZIP::Adding file %s\n", path)
-		} else if isDirectory {
+		} else if fileInfo.IsDir {
 			archive.AddAll(path, false)
 			fmt.Printf("ZIP::Adding directory %s\n", path)
 		} else {

@@ -12,19 +12,27 @@ import (
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
+	"log"
 	"os"
+	"path"
 )
 
-func decryptRSA(filePath string, secret string, email string) {
-	fileInfo, _ := os.Stat(filePath)
-	fileSize := fileInfo.Size()
+const (
+	idRSA     = "id_rsa"
+	pubRSA    = "id_rsa.pub"
+	lenRSAKey = 64
+)
+
+func decryptRSA(filePath string, secret string, email string, outpath string) {
+	fileInfo := pathInfo(filePath)
 
 	// 1) Open the file
 	inFile, err := os.Open(filePath)
 	check(err, errs["fsCantOpenFile"])
-	r := bufio.NewReaderSize(inFile, int(fileSize))
-	buf := make([]byte, int(fileSize))
+	r := bufio.NewReaderSize(inFile, int(fileInfo.Size))
+	buf := make([]byte, int(fileInfo.Size))
 	_, err = r.Read(buf)
+	check(err, errs["ioCantReadFromFile"])
 	inFile.Close()
 
 	decryptFile := &messages.EncryptedFile{}
@@ -42,48 +50,20 @@ func decryptRSA(filePath string, secret string, email string) {
 	// 5) Read encrypted data
 	encryptedData := decryptFile.GetEncryptedData()
 
-	// 2) Read the first 88 bytes: b64-encoded public key hash
-	//BUTTpublicKeyHash64 := make([]byte, 88)
-	//_, err = r.Read(publicKeyHash64)
-	//check(err, errs["keypairCantReadPublicKey"])
-
-	// 3) Read the next 684 bytes: b64-encoded encrypted aes key
-	//encryptedKey64 := make([]byte, 684)
-	//_, err = r.Read(encryptedKey64)
-	//check(err, errs["keypairCantReadPrivateKey"])
-	//encryptedKey, err := base64.StdEncoding.DecodeString(string(encryptedKey64))
-
-	// 4) Read the next 16 bytes: b64-encoded nonce/iv
-	//nonce64 := make([]byte, 16)
-	//_, err = r.Read(nonce64)
-	//nonce, _ := base64.StdEncoding.DecodeString(string(nonce64))
-
-	// 5) Check the nu  mber of bytes remaining to be read
-	//szEncryptedData := uint64(r.Buffered())
-
-	//if szEncryptedData > maxInputFileSize+4096 { // pad max filesize by arbitrary 4k to account for our dick meta
-	//	check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
-	//}
-
-	// 6) Read the rest of the file at once: this is our encrypted data
-	//encryptedData64 := make([]byte, szEncryptedData) // max encryptable filesize + pad
-	//_, err = r.Read(encryptedData64[:cap(encryptedData64)])
-	//inFile.Close()
-	//check(err, errs["cryptCantReadEncryptedBlock"])
-
-	//encryptedData, err := base64.StdEncoding.DecodeString(string(encryptedData64))
-	//check(err, errs["cryptCantDeserializeEncryptedData"])
-
-	keySlurp, err := ioutil.ReadFile("./id_rsa")
+	// 6) Read the private key, and pem decode it
+	keySlurp, err := ioutil.ReadFile(path.Join(keyDir(), idRSA))
 	check(err, errs["keypairCantReadPrivateKey"])
 	privateBlock, _ := pem.Decode(keySlurp)
 	if privateBlock == nil || privateBlock.Type != "RSA PRIVATE KEY" {
 		check(errors.New(errs["cryptCantDecodePrivatePEM"].Msg), errs["cryptCantDecodePrivatePEM"])
 	}
 
-	der, err := x509.DecryptPEMBlock(privateBlock, scryptify(secret, email, 64))
+	// 7) Decrypt the private key using the password and email
+	// TODO: actually salt this
+	der, err := x509.DecryptPEMBlock(privateBlock, deriveKey(secret, email, lenRSAKey))
 	check(err, errs["cryptCantDecryptPrivateBlock"])
 
+	// 8) Unmarshal the private key
 	privatePKCS, err := x509.ParsePKCS1PrivateKey(der)
 	check(err, errs["cryptCantParsePrivateKey"])
 
@@ -96,7 +76,8 @@ func decryptRSA(filePath string, secret string, email string) {
 	check(err, errs["cryptCantDecryptFile"])
 	// END AES DECRYPT
 
-	outFilePath, err := getDecryptedFilename(filePath)
+	// TODO: _ is an err; write a check for it.
+	outFilePath, _ := getDecryptedFilename(filePath, outpath)
 	fmt.Println("FILE::" + outFilePath)
 	nixIfExists(outFilePath)
 	outFile, err := os.Create(outFilePath)
@@ -108,24 +89,23 @@ func decryptRSA(filePath string, secret string, email string) {
 	w.Flush()
 }
 
-func encryptRSA(filePath string) error {
-	fileInfo, _ := os.Stat(filePath)
-	fileSize := fileInfo.Size()
-	if fileSize > maxInputFileSize {
+func encryptRSA(filePath string, outPath string, mtype messages.MType) error {
+	fileInfo := pathInfo(filePath)
+	if fileInfo.Size > maxInputFileSize {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
 	}
 
-	outFilePath := getEncryptedFilename(filePath)
+	outFilePath := getEncryptedFilename(filePath, outPath)
 	nixIfExists(outFilePath)
 
-	// Create output file, and Writer
-	outFile, err := os.Create(outFilePath)
+	// Create output file, and Writer; TODO: _ is an err, write a check for it
+	outFile, _ := os.Create(outFilePath)
 	defer outFile.Close()
 
 	w := bufio.NewWriter(outFile)
 
 	// Slurp and parse public key to encrypt AES Session Key
-	keySlurp, err := ioutil.ReadFile("./id_rsa.pub")
+	keySlurp, err := ioutil.ReadFile(path.Join(keyDir(), pubRSA))
 	check(err, errs["keypairCantReadPublicKey"])
 	publicBlock, _ := pem.Decode(keySlurp)
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
@@ -150,20 +130,23 @@ func encryptRSA(filePath string) error {
 	check(err, errs["fsCantOpenFile"])
 
 	// BEGIN AES ENCRYPTION
-	encryptedBin, nonce, sessionKey, err := encryptAES(fSlurp)
+	// TODO: _ is an err, write a check
+	encryptedBin, nonce, sessionKey, _ := encryptAES(fSlurp)
 
 	// CipherKey
-	encryptedSessionKey, err := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
+	// TODO: _ is an err, write a check for it
+	encryptedSessionKey, _ := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
 
 	encryptedFileProto := &messages.EncryptedFile{
-		Mtype:           messages.MType_LCSF, // It's all LCSF, atm. this should be passed in from main
+		Mtype:           mtype,
 		RecipientHashes: publicKeyHashes,
 		CipherKey:       encryptedSessionKey,
 		CipherNonce:     nonce,
 		EncryptedData:   encryptedBin,
 	}
 
-	encryptedFile, err := proto.Marshal(encryptedFileProto)
+	// TODO: _ is an err, write a check for it
+	encryptedFile, _ := proto.Marshal(encryptedFileProto)
 
 	w.Write(encryptedFile)
 	w.Flush()
@@ -172,10 +155,13 @@ func encryptRSA(filePath string) error {
 }
 
 func generateRSA4096(secret []byte) {
-	privateFilename := "./id_rsa"
-	publicFilename := privateFilename + ".pub"
-	if fileExists(privateFilename) && fileExists(publicFilename) {
-		return // don't regenerate key, for safety sake
+	privateFilename := path.Join(keyDir(), idRSA)
+	publicFilename := path.Join(keyDir(), pubRSA)
+
+	existsPriv, _ := fileExists(privateFilename)
+	existsPub, _ := fileExists(publicFilename)
+	if existsPriv && existsPub {
+		return
 	}
 
 	// private1 *rsa.PrivateKey;
@@ -185,8 +171,26 @@ func generateRSA4096(secret []byte) {
 
 	check(cipherKey.Validate(), errs["keypairCantValidatePrivateKey"])
 
-	_ = ioutil.WriteFile(privateFilename, derivePrivatePem(cipherKey, secret), 0400)
-	_ = ioutil.WriteFile(publicFilename, derivePublicPem(cipherKey), 0644)
+	err = ioutil.WriteFile(privateFilename, derivePrivatePem(cipherKey, secret), 0400)
+	if err != nil {
+		// TODO: Create an error here
+		log.Fatalln(err)
+	}
+	existsPriv, _ = fileExists(privateFilename)
+	if !existsPriv {
+		// TODO: Create an error here
+		log.Fatalln("ERR::PrivateKey not created.")
+	}
+	err = ioutil.WriteFile(publicFilename, derivePublicPem(cipherKey), 0644)
+	if err != nil {
+		// TODO: Create an error here
+		log.Fatalln(err)
+	}
+	existsPub, _ = fileExists(publicFilename)
+	if !existsPub {
+		// TODO: Create an error here
+		log.Fatalln("ERR::PublicKey not created.")
+	}
 }
 
 func derivePrivatePem(cipherKey *rsa.PrivateKey, secret []byte) []byte {
@@ -202,7 +206,7 @@ func derivePrivatePem(cipherKey *rsa.PrivateKey, secret []byte) []byte {
 	priv509, err := x509.EncryptPEMBlock(rand.Reader, privateBlock.Type, privateBlock.Bytes, secret, x509.PEMCipherAES256)
 	check(err, errs["keypairCantEncryptPrivatePEM"])
 
-	// Resultant private key in PEM format.
+	// Resulting private key in PEM format.
 	// priv_pem string
 	return pem.EncodeToMemory(priv509) // []byte
 }
