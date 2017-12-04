@@ -89,13 +89,13 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	w.Flush()
 }
 
-func encryptRSA(filePath string, outpath string, mtype messages.MType) error {
+func encryptRSA(filePath string, outPath string, mtype messages.MType) error {
 	fileInfo := pathInfo(filePath)
 	if fileInfo.Size > maxInputFileSize {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
 	}
 
-	outFilePath := getEncryptedFilename(outpath)
+	outFilePath := getEncryptedFilename(filePath, outPath)
 	nixIfExists(outFilePath)
 
 	// Create output file, and Writer; TODO: _ is an err, write a check for it

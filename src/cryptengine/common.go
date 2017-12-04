@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path"
 )
@@ -83,7 +84,25 @@ func getDecryptedFilename(fname string, outpath string) (string, error) {
 }
 
 // Adds the legalCryptFileExtension to a filename
-func getEncryptedFilename(fname string) string {
-	// TODO: Superfluous, at the moment. Check if exists, and if not, ensure dirs-to-file exist w/ MkDirAll()
-	return appendTrailingLCExt(fname)
+func getEncryptedFilename(f string, o string) string {
+	// TODO: Check if exists, and if not, ensure dirs-to-file exist w/ MkDirAll()
+	fInfo := pathInfo(f)
+	oInfo := pathInfo(o)
+
+	if fInfo.File == "" {
+		// TODO: Make this a proper error
+		log.Fatalln("ERR::fInfo is not a file")
+	}
+	var rPath string
+	if oInfo.Exists && oInfo.IsDir {
+		rPath = path.Join(oInfo.Clean, fInfo.File)
+	} else if !oInfo.Exists && oInfo.Ext == "" {
+		os.MkdirAll(oInfo.Clean, 0700)
+		rPath = path.Join(oInfo.Clean, fInfo.File)
+	} else {
+		os.MkdirAll(fInfo.Dir, 0700)
+		rPath = f
+	}
+
+	return appendTrailingLCExt(rPath)
 }
