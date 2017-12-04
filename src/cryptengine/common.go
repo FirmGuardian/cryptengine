@@ -77,6 +77,8 @@ func getDecryptedFilename(fname string, outpath string) (string, error) {
 		} else {
 			// Looks like a file. Strip any LC extension, and return
 			decryptPath = stripTrailingLCExt(outInfo.Clean)
+			dpInfo := pathInfo(decryptPath)
+			os.MkdirAll(dpInfo.Dir, 0700)
 		}
 	}
 
