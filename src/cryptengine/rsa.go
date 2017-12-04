@@ -89,7 +89,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	w.Flush()
 }
 
-func encryptRSA(filePath string, outPath string, mtype messages.MType) error {
+func encryptRSA(filePath string, outPath string, mType messages.MType) error {
 	fileInfo := pathInfo(filePath)
 	if fileInfo.Size > maxInputFileSize {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
@@ -138,7 +138,7 @@ func encryptRSA(filePath string, outPath string, mtype messages.MType) error {
 	encryptedSessionKey, _ := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
 
 	encryptedFileProto := &messages.EncryptedFile{
-		Mtype:           mtype,
+		Mtype:           mType,
 		RecipientHashes: publicKeyHashes,
 		CipherKey:       encryptedSessionKey,
 		CipherNonce:     nonce,

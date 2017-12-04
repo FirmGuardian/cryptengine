@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"errors"
 	"fmt"
 	"log"
 	"path"
@@ -14,7 +13,7 @@ import (
 const lcszFileName = "lcsf_secured_files.zip"
 
 func archiveFiles(paths []string) string {
-	archivePath := path.Join(tmpDir(), strconv.FormatInt(time.Now().UnixNano(), 36)+lcszFileName)
+	archivePath := path.Join(tmpDir(), strconv.FormatInt(time.Now().UnixNano(), 36)+"-"+lcszFileName)
 
 	// This will hold the paths of any file that we'll add
 	var addedFiles []string
