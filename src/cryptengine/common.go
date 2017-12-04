@@ -69,7 +69,7 @@ func getDecryptedFilename(fname string, outpath string) (string, error) {
 		// Treat outpath as directory
 		if outInfo.Ext == "" {
 			// Make the directory, since it doesn't exist
-			err := os.MkdirAll(outInfo.Clean, 0600)
+			err := os.MkdirAll(outInfo.Clean, 0700)
 			if err != nil {
 				return "", fmt.Errorf("ERR::Unable to create directory (%v)", outInfo.Clean)
 			}
