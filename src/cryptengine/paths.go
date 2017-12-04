@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/user"
 	"path"
@@ -14,12 +15,6 @@ const (
 	dirKeys = "keys"
 	dirTmp  = "tmp"
 )
-
-// LCPath makes for os-independent path declarations for scaffolding
-type LCPath struct {
-	path        string
-	permissions os.FileMode
-}
 
 // PathInfo for testing and retrieving important info for a given path
 type PathInfo struct {
@@ -125,34 +120,20 @@ func pathInfo(p string) PathInfo {
 }
 
 func scaffoldAppDirs() {
-	lcPaths := []LCPath{
-		{
-			path:        binDir(),
-			permissions: 0700,
-		},
-		{
-			path:        keyDir(),
-			permissions: 0600,
-		},
-		{
-			path:        outDirDec(),
-			permissions: 0600,
-		},
-		{
-			path:        outDirEnc(),
-			permissions: 0600,
-		},
-		{
-			path:        tmpDir(),
-			permissions: 0600,
-		},
+	lcPaths := []string{
+		binDir(),
+		keyDir(),
+		outDirDec(),
+		outDirEnc(),
+		tmpDir(),
 	}
 
 	for _, lcPath := range lcPaths {
-		fmt.Printf("%v...", lcPath.path)
-		err := os.MkdirAll(lcPath.path, lcPath.permissions)
+		fmt.Printf("%v...", lcPath)
+		err := os.MkdirAll(lcPath, 0700)
 		if err != nil {
 			fmt.Println("ERR")
+			log.Fatalln(err)
 		} else {
 			fmt.Println("Done")
 		}
