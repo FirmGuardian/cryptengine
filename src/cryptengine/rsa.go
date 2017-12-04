@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 )
@@ -170,8 +171,26 @@ func generateRSA4096(secret []byte) {
 
 	check(cipherKey.Validate(), errs["keypairCantValidatePrivateKey"])
 
-	_ = ioutil.WriteFile(privateFilename, derivePrivatePem(cipherKey, secret), 0400)
-	_ = ioutil.WriteFile(publicFilename, derivePublicPem(cipherKey), 0644)
+	err = ioutil.WriteFile(privateFilename, derivePrivatePem(cipherKey, secret), 0400)
+	if err != nil {
+		// TODO: Create an error here
+		log.Fatalln(err)
+	}
+	existsPriv, _ = fileExists(privateFilename)
+	if !existsPriv {
+		// TODO: Create an error here
+		log.Fatalln("ERR::PrivateKey not created.")
+	}
+	err = ioutil.WriteFile(publicFilename, derivePublicPem(cipherKey), 0644)
+	if err != nil {
+		// TODO: Create an error here
+		log.Fatalln(err)
+	}
+	existsPub, _ = fileExists(publicFilename)
+	if !existsPub {
+		// TODO: Create an error here
+		log.Fatalln("ERR::PublicKey not created.")
+	}
 }
 
 func derivePrivatePem(cipherKey *rsa.PrivateKey, secret []byte) []byte {
