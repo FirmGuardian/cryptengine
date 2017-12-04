@@ -53,12 +53,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/jhoonb/archivex",
-			"repository": "https://github.com/jhoonb/archivex",
-			"revision": "be4efa7ec0c38ab76d56037014c90d48d6b13037",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/mattn/go-colorable",
 			"repository": "https://github.com/mattn/go-colorable",
 			"revision": "ad5389df28cdac544c99bd7b9161a0b5b6ca9d1b",
