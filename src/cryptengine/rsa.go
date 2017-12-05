@@ -89,7 +89,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	w.Flush()
 }
 
-func encryptRSA(filePath string, outPath string, mType messages.MType) error {
+func encryptRSA(filePath string, outPath string, mType messages.MType) (string, error) {
 	fileInfo := pathInfo(filePath)
 	if fileInfo.Size > maxInputFileSize {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
@@ -151,7 +151,7 @@ func encryptRSA(filePath string, outPath string, mType messages.MType) error {
 	w.Write(encryptedFile)
 	w.Flush()
 
-	return nil
+	return outFilePath, nil
 }
 
 func generateRSA4096(secret []byte) {

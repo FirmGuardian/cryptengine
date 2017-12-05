@@ -12,8 +12,9 @@ import (
 
 const lcszFileName = "lcsf_secured_files.zip"
 
-func archiveFiles(paths []string) string {
-	archivePath := path.Join(tmpDir(), strconv.FormatInt(time.Now().UnixNano(), 36)+"-"+lcszFileName)
+func archiveFiles(paths []string) (string, string) {
+	antiCollision := strconv.FormatInt(time.Now().UnixNano(), 36) + "-"
+	archivePath := path.Join(tmpDir(), antiCollision+lcszFileName)
 
 	// This will hold the paths of any file that we'll add
 	var addedFiles []string
@@ -48,5 +49,5 @@ func archiveFiles(paths []string) string {
 		log.Fatalln(err)
 	}
 
-	return archivePath
+	return archivePath, antiCollision
 }
