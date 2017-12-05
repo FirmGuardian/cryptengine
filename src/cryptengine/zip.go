@@ -45,21 +45,14 @@ func archiveFiles(paths []string) string {
 	return archivePath
 }
 
-func unarchiveFiles(zipFile string, outPath string) error {
+func unarchiveFiles(zipFile string) error {
 	zInfo := pathInfo(zipFile)
 	if !zInfo.Exists || !zInfo.IsReg {
 		// TODO: You know what to do, here
 		log.Fatalf("Cannot extract! %v is not regular, or file does not exist!\n", zInfo.Clean)
 	}
-	if outPath == "" {
-		outPath = path.Join(outDirDec(), strings.Replace(zInfo.File, zInfo.Ext, "", -1))
-	}
-	oInfo := pathInfo(outPath)
-	if oInfo.Exists && oInfo.IsReg {
-		// TODO: You know what to do
-		log.Fatalln("Cannot create directory with same name as file that exists")
-	}
-	os.MkdirAll(oInfo.Clean, 0700)
-	err := archiver.Zip.Open("input.zip", oInfo.Clean)
+	outPath := path.Join(outDirDec(), strings.Replace(zInfo.File, zInfo.Ext, "", -1))
+	os.MkdirAll(outPath, 0700)
+	err := archiver.Zip.Open(zInfo.Clean, outPath)
 	return err
 }
