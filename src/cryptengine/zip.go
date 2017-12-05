@@ -54,5 +54,9 @@ func unarchiveFiles(zipFile string) error {
 	outPath := path.Join(outDirDec(), strings.Replace(zInfo.File, zInfo.Ext, "", -1))
 	os.MkdirAll(outPath, 0700)
 	err := archiver.Zip.Open(zInfo.Clean, outPath)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return os.Remove(zInfo.Clean)
 }
