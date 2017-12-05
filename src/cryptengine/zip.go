@@ -12,11 +12,11 @@ import (
 	"github.com/mholt/archiver"
 )
 
-const lcszFileName = "lcsf_secured_files.zip"
+const lcszFileName = "lcsf_secured_files"
 
 func archiveFiles(paths []string) string {
-	antiCollision := strconv.FormatInt(time.Now().UnixNano(), 36) + "-"
-	archivePath := path.Join(tmpDir(), antiCollision+lcszFileName)
+	antiCollision := "-" + strconv.FormatInt(time.Now().UnixNano(), 36)
+	archivePath := path.Join(tmpDir(), lcszFileName+antiCollision+".zip")
 
 	var addedFiles []string
 	var skippedFiles []string
