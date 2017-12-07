@@ -129,7 +129,7 @@ func scaffoldAppDirs() {
 	}
 
 	for _, lcPath := range lcPaths {
-		fmt.Printf("%v...", lcPath)
+		fmt.Printf(";;Scaffolding %v...", lcPath)
 		err := os.MkdirAll(lcPath, 0700)
 		if err != nil {
 			fmt.Println("ERR")

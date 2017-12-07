@@ -38,6 +38,8 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	decryptFile := &messages.EncryptedFile{}
 	proto.Unmarshal(buf, decryptFile)
 
+	mType := decryptFile.GetMtype()
+
 	// 2) Read the recipient hashes
 	_ = decryptFile.GetRecipientHashes()
 
@@ -49,6 +51,8 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 
 	// 5) Read encrypted data
 	encryptedData := decryptFile.GetEncryptedData()
+
+	decryptFile = nil
 
 	// 6) Read the private key, and pem decode it
 	keySlurp, err := ioutil.ReadFile(path.Join(keyDir(), idRSA))
@@ -82,14 +86,22 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	nixIfExists(outFilePath)
 	outFile, err := os.Create(outFilePath)
 	check(err, errs["fsCantCreateFile"])
-	defer outFile.Close()
 	w := bufio.NewWriter(outFile)
 
 	w.Write(decryptedData)
 	w.Flush()
+	outFile.Close()
+
+	if mType == messages.MType_LCSZ {
+		err := unarchiveFiles(outFilePath)
+		if err != nil {
+			// TODO: You know what to do here.
+			log.Fatalln(err)
+		}
+	}
 }
 
-func encryptRSA(filePath string, outPath string, mtype messages.MType) error {
+func encryptRSA(filePath string, outPath string, mType messages.MType) error {
 	fileInfo := pathInfo(filePath)
 	if fileInfo.Size > maxInputFileSize {
 		check(errors.New(errs["memFileTooBig"].Msg), errs["memFileTooBig"])
@@ -138,7 +150,7 @@ func encryptRSA(filePath string, outPath string, mtype messages.MType) error {
 	encryptedSessionKey, _ := rsa.EncryptOAEP(hash, rng, publicKey.(*rsa.PublicKey), sessionKey, []byte(""))
 
 	encryptedFileProto := &messages.EncryptedFile{
-		Mtype:           mtype,
+		Mtype:           mType,
 		RecipientHashes: publicKeyHashes,
 		CipherKey:       encryptedSessionKey,
 		CipherNonce:     nonce,

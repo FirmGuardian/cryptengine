@@ -21,7 +21,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	//"log"
+
 	"os"
 	//"runtime"
 	//"runtime/pprof"
@@ -159,29 +159,38 @@ func encryptFiles(files []string, method string, outPath string) {
 
 	// Multiple files, or a directory
 	if numFiles > 1 || (numFiles == 1 && f0.IsDir) {
-		zipPath := archiveFiles(files)
-		err := encryptRSA(zipPath, outPath, messages.MType_LCSZ)
-		check(err, errs["cryptCantEncryptZip"])
-
-		os.Remove(zipPath)
-
-		fmt.Println("FILE::" + zipPath + legalCryptFileExtension)
+		encryptMultipleFiles(files, outPath)
 
 		// Just one file, and it's normal (e.g. not /dev/null)
 	} else if numFiles == 1 && f0.IsReg {
-		switch method {
-		default:
-			// TODO: Make an error out of this...
-			fmt.Println("ERR::Unknown encryption method")
-			os.Exit(1000)
-		case "rsa":
-			err := encryptRSA(files[0], outPath, messages.MType_LCSF)
-			check(err, errs["cryptCantEncryptOrWrite"])
-			fmt.Println("FILE::" + files[0] + legalCryptFileExtension)
-		}
-
+		encryptSingleFile(files[0], outPath, method)
 		// Something really bizarre has happened
 	} else {
 		check(errors.New(errs["panicWTF"].Msg), errs["panicWTF"])
+	}
+}
+
+func encryptMultipleFiles(files []string, outPath string) {
+	zipPath := archiveFiles(files)
+	fmt.Printf(";;Zip Path: %v\n", zipPath)
+
+	err := encryptRSA(zipPath, outPath, messages.MType_LCSZ)
+	check(err, errs["cryptCantEncryptZip"])
+
+	os.Remove(zipPath)
+
+	fmt.Println("FILE::" + zipPath + legalCryptFileExtension)
+}
+
+func encryptSingleFile(fileName string, outPath string, method string) {
+	switch method {
+	default:
+		// TODO: Make an error out of this...
+		fmt.Println("ERR::Unknown encryption method")
+		os.Exit(1000)
+	case "rsa":
+		err := encryptRSA(fileName, outPath, messages.MType_LCSF)
+		check(err, errs["cryptCantEncryptOrWrite"])
+		fmt.Println("FILE::" + fileName + legalCryptFileExtension)
 	}
 }
