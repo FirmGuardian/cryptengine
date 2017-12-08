@@ -33,11 +33,13 @@ cryptengine <options> [file1 file2...]
  -d      Decrypt a file
  -gen    Generate keypair
  
- -t      Type of encryption/keys, defaults to "rsa"
- -dt     Decrypt token; currently does nothing
+ -o      Optional: Output directory or filename <optional>
+         Defaults to $HOME/Documents/LegalCrypt
+ -t      Optional: Type of encryption/keys, defaults to "rsa"
+ -dt     Decrypt token; currently does nothing at all
  
  -p      Password for keygen
- -eml    Optional: email address, used in keygen
+ -eml    Email address, used in keygen/decryption as salt
 ```
 
 ### Generate keypair
@@ -45,32 +47,32 @@ cryptengine <options> [file1 file2...]
 cryptengine -gen -t rsa -p <password> -eml <email>
 ```
 
+Keypairs are stored in protected directories respective to the host operating system.
+
 **NOTE:** For reasons yet unknown to me, please keep the arguments in the stated order. *I know, I know.* I have to look into this.
 
 ### Encrypt a File
 ```bash
-cryptengine -e -t rsa file1 file2...
+cryptengine -e file1 (file2...)
+# or
+cryptengine -o path/to/target -e file1 (file2...)
 ```
 
 * Encrypts one or more files
 * Supports directories
-* Encrypting multiple files first creates a zip file containing the given files, then encrypts the zip file
+* Encrypting multiple files first creates a zip file containing the given files, then encrypts the zip file. Any normal files are added to the root directory of the zip, and directories are added recursively. Zip files created in this way are automatically extracted following decryption.
 * Skips non-standard files/directories (e.g. `/dev/null`, `/dev/ttyS2`, `/dev/hda0s13`, etc)
 * Reports skipped files, but doesn't fail
 
 ### Decrypt a File
 ```bash
-cryptengine -p <password> -eml <email> -t rsa -d filename
+cryptengine -p <password> -eml <email> -d filename
+# or
+cryptengine -o path/to/target -eml <email> -d filename
 ```
 **NOTE:** For reasons yet unknown to me, please keep the arguments in the stated order. *I know, I know.* I have to look into this.
 
 **NOTE:** The `-t` flag will be deprecated upon autoselection of correct private key based on public key hash, at which point it will be ignored
-
-### Test Scrypt Pwd-based KDF
-```bash
-cryptengine -scrypt passphrase
-```
-This will take a few seconds, then output the base64-encoded derived key to the console. This is more PoC, than anything else, but will be written into the libraries used by both front- and back ends.
 
 ## Supported Features
 
