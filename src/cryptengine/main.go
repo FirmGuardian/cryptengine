@@ -18,9 +18,11 @@
 package main
 
 import (
+	"crypto/rand"
 	"errors"
 	"flag"
 	"fmt"
+	"path"
 
 	"os"
 	//"runtime"
@@ -28,11 +30,6 @@ import (
 
 	"github.com/FirmGuardian/legalcrypt-protos/messages"
 )
-
-func generateKeypairs(passphrase string, email string) {
-	fmt.Println(";;Generating keypair")
-	generateRSA4096(deriveKey(passphrase, email, 64))
-}
 
 // TODO: Abstract the main method's logic. It's getting all spaghetti in there.
 func main() {
@@ -111,6 +108,7 @@ func main() {
 	//}
 }
 
+// TODO: Rename one or both of these methods
 func generateKeyPair(passwd string, email string) {
 	if passwd != "" && email != "" {
 		generateKeypairs(passwd, email)
@@ -193,4 +191,22 @@ func encryptSingleFile(fileName string, outPath string, method string) {
 		check(err, errs["cryptCantEncryptOrWrite"])
 		fmt.Println("FILE::" + fileName + legalCryptFileExtension)
 	}
+}
+
+func generateKeypairs(passphrase string, email string) {
+	fmt.Println(";;Generating keypair")
+	// TODO: email will be replaced by uSalt. Keep it around for now.
+	fmt.Printf(";;Unused email: %v\n", email)
+	uSalt := make([]byte, 0)
+	xSalt := generateXSalt()
+	generateRSA4096(deriveKey(passphrase, append(uSalt, xSalt...)))
+}
+
+func generateXSalt() []byte {
+	salt := make([]byte, scryptKeyLen)
+	rand.Read(salt)
+	saltFile, _ := os.OpenFile(path.Join(keyDir(), "nacl"), os.O_CREATE|os.O_TRUNC|os.O_WRONLY|os.O_SYNC, 0600)
+	saltFile.Write(salt)
+	saltFile.Close()
+	return salt
 }
