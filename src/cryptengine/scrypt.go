@@ -52,7 +52,7 @@ import (
 )
 
 const (
-	scryptKeyLen = 64
+	scryptKeyLen = 128
 )
 
 func deriveKey(pass string, salt []byte) []byte {
