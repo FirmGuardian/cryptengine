@@ -18,16 +18,16 @@ import (
 )
 
 const (
-	idRSA     = "id_rsa"
-	pubRSA    = "id_rsa.pub"
-	lenRSAKey = 64
+	idRSA  = "id_rsa"
+	pubRSA = "id_rsa.pub"
 )
 
 func decryptRSA(filePath string, secret string, email string, outpath string) {
+	fmt.Printf(";;Unused email: %v\n", email)
 	fileInfo := pathInfo(filePath)
 
 	// 1) Open the file
-	inFile, err := os.Open(filePath)
+	inFile, err := os.OpenFile(filePath, os.O_RDONLY|os.O_SYNC, 0600)
 	check(err, errs["fsCantOpenFile"])
 	r := bufio.NewReaderSize(inFile, int(fileInfo.Size))
 	buf := make([]byte, int(fileInfo.Size))
@@ -63,8 +63,10 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	}
 
 	// 7) Decrypt the private key using the password and email
-	// TODO: actually salt this
-	der, err := x509.DecryptPEMBlock(privateBlock, deriveKey(secret, email, lenRSAKey))
+	// TODO: You know the drill.
+	uSalt := make([]byte, 0)
+	xSalt, _ := ioutil.ReadFile(path.Join(keyDir(), "nacl"))
+	der, err := x509.DecryptPEMBlock(privateBlock, deriveKey(secret, append(uSalt, xSalt...)))
 	check(err, errs["cryptCantDecryptPrivateBlock"])
 
 	// 8) Unmarshal the private key
@@ -84,12 +86,18 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	outFilePath, _ := getDecryptedFilename(filePath, outpath)
 	fmt.Println("FILE::" + outFilePath)
 	nixIfExists(outFilePath)
-	outFile, err := os.Create(outFilePath)
+	outFile, err := os.OpenFile(outFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC|os.O_SYNC, 0600)
 	check(err, errs["fsCantCreateFile"])
-	w := bufio.NewWriter(outFile)
+	n, err := outFile.Write(decryptedData)
+	if err != nil {
+		// TODO: You know the drill
+		log.Fatalln(err)
+	}
+	if n != len(decryptedData) {
+		// TODO: You now the drill
+		log.Fatalln("Bytes written not equal to bytes to write!")
+	}
 
-	w.Write(decryptedData)
-	w.Flush()
 	outFile.Close()
 
 	if mType == messages.MType_LCSZ {
@@ -109,12 +117,6 @@ func encryptRSA(filePath string, outPath string, mType messages.MType) error {
 
 	outFilePath := getEncryptedFilename(filePath, outPath)
 	nixIfExists(outFilePath)
-
-	// Create output file, and Writer; TODO: _ is an err, write a check for it
-	outFile, _ := os.Create(outFilePath)
-	defer outFile.Close()
-
-	w := bufio.NewWriter(outFile)
 
 	// Slurp and parse public key to encrypt AES Session Key
 	keySlurp, err := ioutil.ReadFile(path.Join(keyDir(), pubRSA))
@@ -160,8 +162,10 @@ func encryptRSA(filePath string, outPath string, mType messages.MType) error {
 	// TODO: _ is an err, write a check for it
 	encryptedFile, _ := proto.Marshal(encryptedFileProto)
 
-	w.Write(encryptedFile)
-	w.Flush()
+	// Create output file, and Writer; TODO: _ is an err, write a check for it
+	outFile, _ := os.OpenFile(outFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC|os.O_SYNC, 0600)
+	outFile.Write(encryptedFile)
+	outFile.Close()
 
 	return nil
 }
@@ -183,7 +187,13 @@ func generateRSA4096(secret []byte) {
 
 	check(cipherKey.Validate(), errs["keypairCantValidatePrivateKey"])
 
-	err = ioutil.WriteFile(privateFilename, derivePrivatePem(cipherKey, secret), 0400)
+	privateFile, err := os.OpenFile(privateFilename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY|os.O_SYNC, 0600)
+	if err != nil {
+		// TODO: Create an error here
+		log.Fatalln(err)
+	}
+	_, err = privateFile.Write(derivePrivatePem(cipherKey, secret))
+	privateFile.Close()
 	if err != nil {
 		// TODO: Create an error here
 		log.Fatalln(err)
@@ -193,7 +203,13 @@ func generateRSA4096(secret []byte) {
 		// TODO: Create an error here
 		log.Fatalln("ERR::PrivateKey not created.")
 	}
-	err = ioutil.WriteFile(publicFilename, derivePublicPem(cipherKey), 0644)
+	publicFile, err := os.OpenFile(publicFilename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY|os.O_SYNC, 0600)
+	if err != nil {
+		// TODO: Create an error here
+		log.Fatalln(err)
+	}
+	_, err = publicFile.Write(derivePublicPem(cipherKey))
+	publicFile.Close()
 	if err != nil {
 		// TODO: Create an error here
 		log.Fatalln(err)

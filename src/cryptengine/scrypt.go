@@ -51,14 +51,17 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
-func deriveKey(pass string, email string, keyLen int) []byte {
+const (
+	scryptKeyLen = 128
+)
+
+func deriveKey(pass string, salt []byte) []byte {
 	passwd := []byte(pass)
-	salt := []byte(email)
 	N := 512 * 1024
 	r := 19
 	p := 2
 
-	key, _ := scrypt.Key(passwd, salt, N, r, p, keyLen)
+	key, _ := scrypt.Key(passwd, salt, N, r, p, scryptKeyLen)
 
 	return key
 }
