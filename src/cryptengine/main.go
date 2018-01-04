@@ -85,9 +85,7 @@ func main() {
 
 		// Usage Error
 	} else {
-		// TODO: Remove this soon. We won't want to display usage on the cli
-		fmt.Println("ERR::Usage: cryptengine [options] file1 (file2 file3...)")
-		flag.PrintDefaults()
+		fmt.Println("ERR::Usage")
 		os.Exit(1000)
 	}
 
