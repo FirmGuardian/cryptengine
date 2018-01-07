@@ -1,0 +1,83 @@
+package: .
+import:
+- package: github.com/FirmGuardian/legalcrypt-protos
+  version: 47045c6fdb04986442cc005e0fc0fa78f1caee43
+  repo: https://github.com/FirmGuardian/legalcrypt-protos
+  subpackages:
+  - messages
+- package: github.com/MichaelTJones/walk
+  version: 4748e29d5718c2df4028a6543edf86fd8cc0f881
+  repo: https://github.com/MichaelTJones/walk
+- package: github.com/dsnet/compress
+  version: c4dbed65594871659ea7347a85e1b8dcd97b9990
+  repo: https://github.com/dsnet/compress
+  subpackages:
+  - bzip2
+  - internal
+- package: github.com/golang/protobuf
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
+  repo: https://github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
+  repo: https://github.com/golang/snappy
+- package: github.com/howeyc/gopass
+  version: bf9dde6d0d2c004a008c27aaee91170c786f6db8
+  repo: https://github.com/howeyc/gopass
+- package: github.com/mattn/go-colorable
+  version: ad5389df28cdac544c99bd7b9161a0b5b6ca9d1b
+  repo: https://github.com/mattn/go-colorable
+- package: github.com/mattn/go-isatty
+  version: a5cdd64afdee435007ee3e9f6ed4684af949d568
+  repo: https://github.com/mattn/go-isatty
+- package: github.com/mgutz/ansi
+  version: 9520e82c474b0a04dd04f8a40959027271bab992
+  repo: https://github.com/mgutz/ansi
+- package: github.com/mgutz/minimist
+  version: 39eb8cf573ca29344bd7d7e6ba4d7febdebd37a9
+  repo: https://github.com/mgutz/minimist
+- package: github.com/mgutz/str
+  version: v1.2.0
+  repo: https://github.com/mgutz/str
+- package: github.com/mgutz/to
+  version: v1.0.0
+  repo: https://github.com/mgutz/to
+- package: github.com/mholt/archiver
+  version: 26cf5bb32d07aa4e8d0de15f56ce516f4641d7df
+  repo: https://github.com/mholt/archiver
+- package: github.com/nozzle/throttler
+  version: v1.0
+  repo: https://github.com/nozzle/throttler
+- package: github.com/nwaples/rardecode
+  version: e06696f847aeda6f39a8f0b7cdff193b7690aef6
+  repo: https://github.com/nwaples/rardecode
+- package: github.com/pierrec/lz4
+  version: v1.0.1
+  repo: https://github.com/pierrec/lz4
+- package: github.com/pierrec/xxHash
+  version: a0006b13c722f7f12368c00a3d3c2ae8a999a0c6
+  repo: https://github.com/pierrec/xxHash
+  subpackages:
+  - xxHash32
+- package: github.com/ulikunitz/xz
+  version: v0.5.4
+  repo: https://github.com/ulikunitz/xz
+- package: golang.org/x/crypto
+  version: 2509b142fb2b797aa7587dad548f113b2c0f20ce
+  repo: https://go.googlesource.com/crypto
+  subpackages:
+  - pbkdf2
+  - scrypt
+  - sha3
+  - ssh/terminal
+- package: golang.org/x/sys
+  version: a1a1f1746d156bbc9954f29134b20ed4ce2752f1
+  repo: https://go.googlesource.com/sys
+  subpackages:
+  - unix
+- package: gopkg.in/godo.v2
+  version: v2.0.9
+  repo: https://gopkg.in/godo.v2
+  subpackages:
+  - cmd/godo
