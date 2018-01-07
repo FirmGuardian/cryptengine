@@ -8,6 +8,7 @@ Thumbs.db
 /bin
 /pkg
 /test
+/vendor
 
 !/test/README.md
 !/test/integrationTest.sh

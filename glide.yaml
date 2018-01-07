@@ -9,7 +9,7 @@ import:
   version: 4748e29d5718c2df4028a6543edf86fd8cc0f881
   repo: https://github.com/MichaelTJones/walk
 - package: github.com/dsnet/compress
-  version: c4dbed65594871659ea7347a85e1b8dcd97b9990
+  version: cc9eb1d7ad760af14e8f918698f745e80377af4f
   repo: https://github.com/dsnet/compress
   subpackages:
   - bzip2
@@ -76,8 +76,8 @@ import:
   repo: https://go.googlesource.com/sys
   subpackages:
   - unix
-- package: gopkg.in/godo.v2
-  version: v2.0.9
-  repo: https://gopkg.in/godo.v2
-  subpackages:
-  - cmd/godo
+#- package: gopkg.in/godo.v2
+#  version: v2.0.9
+#  repo: https://gopkg.in/godo.v2
+#  subpackages:
+#  - cmd/godo
