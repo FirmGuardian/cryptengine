@@ -164,7 +164,8 @@ func encryptFiles(files []string, method string, outPath string) {
 		// Just one file, and it's normal (e.g. not /dev/null)
 	} else if numFiles == 1 && f0.IsReg {
 		encryptSingleFile(files[0], outPath, method)
-		// Something really bizarre has happened
+		// Something really bizarre has happened, e.g. we're solely encrypting something
+		// like a pagefile, /dev/urand, or a hardware device, like /dev/hda
 	} else {
 		check(errors.New(errs["panicWTF"].Msg), errs["panicWTF"])
 	}
