@@ -154,13 +154,18 @@ func encryptFiles(files []string, method string, outPath string) {
 	}
 
 	// Multiple files, or a directory
-	if numFiles > 1 || (numFiles == 1 && f0.IsDir) {
+	if numFiles > 1 {
 		encryptMultipleFiles(files, outPath)
+	} else if numFiles == 1 && f0.IsDir {
+		singleDir, _ := os.Open(files[0])
+		subFiles, _ := singleDir.Readdirnames(-1)
 
+		encryptMultipleFiles(subFiles, outPath)
 		// Just one file, and it's normal (e.g. not /dev/null)
 	} else if numFiles == 1 && f0.IsReg {
 		encryptSingleFile(files[0], outPath, method)
-		// Something really bizarre has happened
+		// Something really bizarre has happened, e.g. we're solely encrypting something
+		// like a pagefile, /dev/urand, or a hardware device, like /dev/hda
 	} else {
 		check(errors.New(errs["panicWTF"].Msg), errs["panicWTF"])
 	}
