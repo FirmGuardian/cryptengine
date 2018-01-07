@@ -1,15 +1,12 @@
-hash: 84a5d01ba2ebdd346f9f95958271b203d77e2a3ff0a1de7fcb98f12de966f99d
-updated: 2018-01-07T14:56:16.242765-06:00
+hash: 4da0b8417e68d640c67933f7e846a4948ff19fb9d7c5aad2f286ef3d7d6182b3
+updated: 2018-01-07T15:06:22.285771-06:00
 imports:
 - name: github.com/dsnet/compress
   version: cc9eb1d7ad760af14e8f918698f745e80377af4f
   repo: https://github.com/dsnet/compress
   subpackages:
   - bzip2
-  - bzip2/internal/sais
   - internal
-  - internal/errors
-  - internal/prefix
 - name: github.com/FirmGuardian/legalcrypt-protos
   version: 47045c6fdb04986442cc005e0fc0fa78f1caee43
   repo: https://github.com/FirmGuardian/legalcrypt-protos
@@ -67,10 +64,6 @@ imports:
 - name: github.com/ulikunitz/xz
   version: 0c6b41e72360850ca4f98dc341fd999726ea007f
   repo: https://github.com/ulikunitz/xz
-  subpackages:
-  - internal/hash
-  - internal/xlog
-  - lzma
 - name: golang.org/x/crypto
   version: 2509b142fb2b797aa7587dad548f113b2c0f20ce
   repo: https://go.googlesource.com/crypto
@@ -84,14 +77,4 @@ imports:
   repo: https://go.googlesource.com/sys
   subpackages:
   - unix
-  - windows
-- name: gopkg.in/godo.v2
-  version: b5fd2f0bef1ebe832e628cfad18ab1cc707f65a1
-  repo: https://gopkg.in/godo.v2
-  subpackages:
-  - cmd/godo
-  - glob
-  - util
-  - watcher
-  - watcher/fswatch
 testImports: []
