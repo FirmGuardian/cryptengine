@@ -1,6 +1,18 @@
-# Command: `cryptengine`
+# Cryptengine
+
+## Build
+`go build -race -a -o ./bin/cryptengine`
+
+### Tooling Dependencies
+
+#### Go
+Go is the language used to build the cryptengine. You'll need to download version 1.9.2 or newer from their site [here](https://golang.org/).
+
+#### Glide
+Glide is our vendor package manager. You can find it [here](https://github.com/Masterminds/glide#install). 
 
 ## Usage
+Command: `cryptengine`
 
 ### Basic Usage
 ```
