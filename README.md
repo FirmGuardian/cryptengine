@@ -9,7 +9,12 @@
 Go is the language used to build the cryptengine. You'll need to download version 1.9.2 or newer from their site [here](https://golang.org/).
 
 #### Glide
-Glide is our vendor package manager. You can find it [here](https://github.com/Masterminds/glide#install). 
+Glide is our vendor package manager. You can find it [here](https://glide.sh/). 
+
+#### Putting it Together
+1. Clone this repo into your `$GOPATH/src` directory. If your `$GOPATH` isn't set, it's best to set it to `~/go`, so that your cloned repo is in `~/go/src/cryptengine`.
+2. In the repo's root directory, run `glide install` to install the vendor dependencies.
+3. You should be good to go. (See what I did there?) Try a build!
 
 ## Usage
 Command: `cryptengine`
