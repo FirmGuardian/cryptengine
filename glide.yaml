@@ -1,14 +1,17 @@
 package: cryptengine
 import:
 - package: github.com/FirmGuardian/legalcrypt-protos
+  version: 47045c6fdb04986442cc005e0fc0fa78f1caee43
   subpackages:
   - messages
 - package: github.com/golang/protobuf
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
   - proto
 - package: github.com/mholt/archiver
   version: ~2.0.0
 - package: golang.org/x/crypto
+  version: 13931e22f9e72ea58bb73048bc752b48c6d4d4ac
   subpackages:
   - scrypt
   - sha3
