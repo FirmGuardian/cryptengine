@@ -1,0 +1,36 @@
+hash: 98d786e49aa488ff71c44047ed18ab0c734df917290c7e9d8f73613a39203d96
+updated: 2018-01-12T19:49:21.228276-06:00
+imports:
+- name: github.com/dsnet/compress
+  version: cc9eb1d7ad760af14e8f918698f745e80377af4f
+  subpackages:
+  - bzip2
+  - bzip2/internal/sais
+  - internal
+  - internal/errors
+  - internal/prefix
+- name: github.com/FirmGuardian/legalcrypt-protos
+  version: 47045c6fdb04986442cc005e0fc0fa78f1caee43
+  subpackages:
+  - messages
+- name: github.com/golang/protobuf
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
+  subpackages:
+  - proto
+- name: github.com/mholt/archiver
+  version: cdc68dd1f170b8dfc1a0d2231b5bb0967ed67006
+- name: github.com/nwaples/rardecode
+  version: e06696f847aeda6f39a8f0b7cdff193b7690aef6
+- name: github.com/ulikunitz/xz
+  version: 0c6b41e72360850ca4f98dc341fd999726ea007f
+  subpackages:
+  - internal/hash
+  - internal/xlog
+  - lzma
+- name: golang.org/x/crypto
+  version: 13931e22f9e72ea58bb73048bc752b48c6d4d4ac
+  subpackages:
+  - pbkdf2
+  - scrypt
+  - sha3
+testImports: []
