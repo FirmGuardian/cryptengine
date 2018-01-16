@@ -1,7 +1,7 @@
 # Cryptengine
 
 ## Build
-`go build -race -a -o ./bin/cryptengine`
+`go build -a -o ./bin/cryptengine`
 
 ### Tooling Dependencies
 

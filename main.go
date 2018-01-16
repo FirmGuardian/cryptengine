@@ -23,10 +23,10 @@ import (
 	"flag"
 	"fmt"
 	"path"
-
 	"os"
-	//"runtime"
-	//"runtime/pprof"
+	"log"
+	"runtime"
+	"runtime/pprof"
 
 	"github.com/FirmGuardian/legalcrypt-protos/messages"
 )
@@ -37,8 +37,8 @@ func main() {
 	scaffoldAppDirs()
 	// TODO: Remove these at some point
 	// Please keep for now
-	//cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
-	//memprofile := flag.String("memprofile", "", "write memory profile to file")
+	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
+	memprofile := flag.String("memprofile", "", "write memory profile to file")
 
 	decryptPtr := flag.Bool("d", false, "Decrypt the given file")
 	encryptPtr := flag.Bool("e", false, "Encrypt the given file")
@@ -56,14 +56,14 @@ func main() {
 
 	// TODO: Remove this, at some point
 	// Please keep for now...
-	//if *cpuprofile != "" {
-	//	f, err := os.Create(*cpuprofile)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	pprof.StartCPUProfile(f)
-	//	defer pprof.StopCPUProfile()
-	//}
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	fmt.Println(";;Email: " + *emailPtr)
 	fmt.Println(";;Pass: " + *passPtr)
@@ -94,16 +94,16 @@ func main() {
 
 	// TODO: remove this, at some point.
 	// Please keep for now...
-	//if *memprofile != "" {
-	//	f, err := os.Create(*memprofile)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//	runtime.GC()
-	//	pprof.WriteHeapProfile(f)
-	//	f.Close()
-	//	return
-	//}
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		runtime.GC()
+		pprof.WriteHeapProfile(f)
+		f.Close()
+		return
+	}
 }
 
 // TODO: Rename one or both of these methods
