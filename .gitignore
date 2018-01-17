@@ -7,12 +7,12 @@ Thumbs.db
 
 /bin
 /pkg
-/test
+#/test
 /vendor
 
-!/test/README.md
-!/test/integrationTest.sh
-!/test/randos
+#!/test/README.md
+#!/test/integrationTest.sh
+#!/test/randos
 
 id_rsa
 id_rsa.pub
