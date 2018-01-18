@@ -35,25 +35,38 @@ func appRoot() string {
 	default:
 		panic("Unsupported operating system")
 	case "linux":
+	  p = getPosixAppRoot()
 	case "darwin":
-		root := os.Getenv("HOME")
-		if root != "" {
-			p = path.Join(root, ".LegalCrypt")
-		} else {
-			// TODO: Do this better
-			panic("ERR::Don't know where home is.")
-		}
+		p = getPosixAppRoot()
 	case "windows":
-		root := os.Getenv("AppData")
-		if root != "" {
-			p = path.Join(root, "LegalCrypt")
-		} else {
-			// TODO: Do this better
-			panic("ERR::Don't know where AppData is")
-		}
+		p = getWindowsAppRoot()
 	}
 
 	return p
+}
+
+func getPosixAppRoot() (p string) {
+  root := os.Getenv("HOME")
+  if root != "" {
+    p = path.Join(root, ".LegalCrypt")
+  } else {
+    // TODO: Do this better
+    panic("ERR::Don't know where home is.")
+  }
+
+  return p
+}
+
+func getWindowsAppRoot() (p string) {
+  root := os.Getenv("AppData")
+  if root != "" {
+    p = path.Join(root, "LegalCrypt")
+  } else {
+    // TODO: Do this better
+    panic("ERR::Don't know where AppData is")
+  }
+
+  return p
 }
 
 func binDir() string {
