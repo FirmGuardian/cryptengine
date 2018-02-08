@@ -19,7 +19,7 @@ const (
 // Only check if a file exists
 func fileExists(filePath string) (bool, os.FileInfo) {
 	stats, err := os.Stat(filePath)
-	return os.IsExist(err), stats
+	return err == nil, stats
 }
 
 // Used to generate numBytes number of cryptographically random bytes
