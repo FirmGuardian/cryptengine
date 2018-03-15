@@ -18,12 +18,14 @@ func main() {
   fatalErrorCheck(err)
 	homeDir := user.HomeDir
 
+	// key locations
 	keyDir := homeDir+"/.LegalCrypt/keys"
   initFiles := []string{
     keyDir + "/id_rsa",
     keyDir + "/id_rsa.pub",
     keyDir + "/nacl"}
 
+  // test file locations
   testFilesDir := homeDir + "/go/src/cryptengine/test/testFiles"
 	randosFiles := []string{
     testFilesDir + "/benchmark-file-megs1.rando",
@@ -40,24 +42,25 @@ func main() {
   fmt.Println("********* BEGIN CRYPTENGINE INTEGRATION TESTS ********")
 
   fmt.Println("setting up test envrionment...")
-	// env init
+  err = os.RemoveAll(homeDir+"/.LegalCrypt")
+  fatalErrorCheck(err)
+
   // TODO: remove old encrypted files
 
   // setting up randos
   fmt.Println("Checking randos files...")
   if fileCheck (randosFiles) != 0 {
-    err = os.RemoveAll(homeDir+"/.LegalCrypt")
-    fatalErrorCheck(err)
+    os.RemoveAll(testFilesDir)
     fmt.Println("Files missing, regenerating test files (this takes awhile)...")
-
-    _ = runCommand("./run_randos.sh")
+    _, err = runCommand("./run_randos.sh")
+    fatalErrorCheck(err)
   }
 
   fmt.Println("Setup complete, starting tests...")
 
 	// keygen and setup
 	fmt.Println("Generating keys...")
-	output := runCommand("./cryptengine", "-gen", "-t", "rsa", "-p", password, "-eml",
+	output, err := runCommand("./cryptengine", "-gen", "-t", "rsa", "-p", password, "-eml",
 		email)
 	fmt.Println(string(output))
 
@@ -65,9 +68,6 @@ func main() {
 	fmt.Println("Verifying keys exists...")
   missingFiles := fileCheck (initFiles)
   fmt.Println(strconv.Itoa(missingFiles) + " files missing")
-
-	// cleanup
-	os.RemoveAll(homeDir+"/.LegalCrypt")
 }
 
 /*
@@ -96,12 +96,12 @@ func fileCheck (filepaths []string) (int){
 wrapper for running commands via os/exec
 returns output of command run
 */
-func runCommand (name string, arg ...string) ([]byte){
+func runCommand (name string, arg ...string) ([]byte, error){
   output, err := exec.Command(name , arg...).CombinedOutput()
   if err != nil {
     os.Stderr.WriteString(err.Error())
   }
-  return output
+  return output, err
 }
 
 /*
