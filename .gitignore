@@ -7,7 +7,7 @@ Thumbs.db
 
 /bin
 /pkg
-#/test
+/test
 /vendor
 
 #!/test/README.md
