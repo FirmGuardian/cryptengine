@@ -82,14 +82,14 @@ func TestUnarchiveFiles(t *testing.T) {
   // ---------------------------------------
   // Pass invalid zip file
   // ---------------------------------------
-  err := unarchiveFiles("1")
+  _, err := unarchiveFiles("1")
   if err == nil {
     t.Error("FAILED: unarchiveFilesUnzipsInvalidZip")
   }
   // ---------------------------------------
   // Pass non-existing zip file
   // ---------------------------------------
-  err = unarchiveFiles(path.Join(tmpDir(), "file.zip"))
+  _, err = unarchiveFiles(path.Join(tmpDir(), "file.zip"))
   if err == nil {
     t.Error("FAILED: unarchiveFilesUnzipsNonExistingZip")
   }
@@ -98,13 +98,13 @@ func TestUnarchiveFiles(t *testing.T) {
   // Pass existing zip file
   // ---------------------------------------
   zipFile := CreateZipFile(t)
-  err = unarchiveFiles(zipFile)
+  unzippedFile, err := unarchiveFiles(zipFile)
   if err != nil {
     t.Error("FAILED: unarchiveFilesCanNotUnzipZip")
   }
 
-  unzippedFile := pathInfo(zipFile)
-  if unzippedFile.Exists {
+  zipFileInfo := pathInfo(zipFile)
+  if zipFileInfo.Exists {
     t.Error("FAILED: unarchiveFilesDoesNotRemoveZipAfterUnzip")
   }
 
@@ -113,5 +113,6 @@ func TestUnarchiveFiles(t *testing.T) {
   // ---------------------------------------
   // The case where the unzip is successful, unarchiveFiles deletes the zip after unzipping occurs,
   // so we don't have to clean it up
-  // TODO: Return output file path so we can do thing like open/delete it after unzipping.
+  HandleError(t, removeTempFileTempDirError, os.RemoveAll(unzippedFile))
+  t.Logf("%s and its contents was removed!", unzippedFile)
 }

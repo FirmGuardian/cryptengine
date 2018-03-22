@@ -101,7 +101,7 @@ func decryptRSA(filePath string, secret string, email string, outpath string) {
 	outFile.Close()
 
 	if mType == messages.MType_LCSZ {
-		err := unarchiveFiles(outFilePath)
+		_, err := unarchiveFiles(outFilePath)
 		if err != nil {
 			// TODO: You know what to do here.
 			log.Fatalln(err)
