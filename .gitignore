@@ -10,9 +10,11 @@ Thumbs.db
 /test
 /vendor
 
-!/test/README.md
-!/test/integrationTest.sh
-!/test/randos
+#!/test/README.md
+#!/test/integrationTest.sh
+#!/test/randos
+#!/test/run_randos.sh
+#!/test/main.go
 
 id_rsa
 id_rsa.pub
